@@ -2069,18 +2069,21 @@ input, select, textarea, button {
     gap: 12px;
     position: relative;
     box-shadow: var(--shadow-sm);
-    opacity: 0.6;
-    transition: all 0.3s ease;
+    opacity: 0.5;
+    filter: grayscale(1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .achievement-card.unlocked {
     opacity: 1;
-    border-color: var(--primary-color);
+    filter: none;
+    border-color: rgba(99, 102, 241, 0.45) !important;
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.25), 0 0 30px rgba(99, 102, 241, 0.08) !important;
 }
 
 .achievement-card.unlocked:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-5px);
+    box-shadow: 0 0 25px rgba(99, 102, 241, 0.45), 0 0 50px rgba(99, 102, 241, 0.15) !important;
 }
 
 .ach-icon-circle {

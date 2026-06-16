@@ -65,14 +65,6 @@ export class HabitManager {
             this.gamificationManager.addXp(20, 'Habit Completed');
             
             
-            const currentHabit = this.habits.find(h => h.id === id);
-            if (currentHabit) {
-                if (currentHabit.streak >= 7) {
-                    this.gamificationManager.checkAndUnlockBadge('streak_7');
-                } else if (currentHabit.streak >= 3) {
-                    this.gamificationManager.checkAndUnlockBadge('streak_3');
-                }
-            }
         }
     }
 

@@ -15,6 +15,7 @@ export class TaskManager {
         this.tasks = state.tasks;
         this.onStateUpdate = onStateUpdate;
         this.gamificationManager = gamificationManager;
+        this.state = state;
     }
 
     getTasks() {
@@ -43,8 +44,11 @@ export class TaskManager {
         };
 
         this.tasks.unshift(newTask);
-        this.save();
         
+        this.state.totalTasksCreated = (this.state.totalTasksCreated || 0) + 1;
+        localStorage.setItem('taskflow_total_created', this.state.totalTasksCreated.toString());
+        
+        this.save();
         
         this.gamificationManager.addXp(10, 'Task Created');
         
@@ -54,7 +58,6 @@ export class TaskManager {
     updateTask(id, updatedFields) {
         this.tasks = this.tasks.map(task => {
             if (task.id === id) {
-                
                 return { ...task, ...updatedFields };
             }
             return task;
@@ -63,7 +66,6 @@ export class TaskManager {
     }
 
     deleteTask(id, callback) {
-        
         const element = document.querySelector(`.task-item[data-id="${id}"]`);
         if (element) {
             element.classList.add('slide-out');
@@ -90,7 +92,6 @@ export class TaskManager {
                 const toggledStatus = !task.completed;
                 taskCompleted = toggledStatus;
                 
-                
                 if (toggledStatus && task.isRecurring && task.recurrence && !task.recurrence.isPaused) {
                     isTaskRecurring = true;
                     const nextSchedule = calculateNextOccurrence(task);
@@ -113,9 +114,13 @@ export class TaskManager {
             return task;
         });
 
+        if (taskCompleted) {
+            this.state.totalTasksCompleted = (this.state.totalTasksCompleted || 0) + 1;
+            localStorage.setItem('taskflow_total_completed', this.state.totalTasksCompleted.toString());
+        }
+
         this.save();
 
-        
         if (taskCompleted) {
             const task = this.tasks.find(t => t.id === id) || { priority: 'medium' };
             let xpEarned = 15;
@@ -130,20 +135,12 @@ export class TaskManager {
                 reason += ' (High Priority Bonus)';
             }
             
-            
             const hour = new Date().getHours();
             if (hour >= 22 || hour < 4) {
                 this.gamificationManager.checkAndUnlockBadge('night_owl');
             }
 
             this.gamificationManager.addXp(xpEarned, reason);
-            this.gamificationManager.checkAndUnlockBadge('first_task');
-            
-            
-            const totalCompleted = this.tasks.filter(t => t.completed).length;
-            if (totalCompleted >= 10) {
-                this.gamificationManager.checkAndUnlockBadge('tasks_10');
-            }
         }
     }
 

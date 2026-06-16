@@ -1,6 +1,6 @@
 
 
-import { loadState, saveTheme } from './js/storage.js';
+import { loadState, saveTheme, resetStorage } from './js/storage.js';
 import { GamificationManager, BADGES } from './js/gamification.js';
 import { NotificationManager } from './js/notifications.js';
 import { FocusManager } from './js/focus.js';
@@ -683,6 +683,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         
         const roundedScore = Math.max(0, Math.min(100, Math.round(score)));
+        appState.productivityScore = roundedScore;
         
         const scoreValText = document.getElementById('score-value');
         const prevScore = scoreValText ? (parseInt(scoreValText.getAttribute('data-score')) || 0) : 0;
@@ -705,11 +706,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (scoreValText) {
             animateCounter('score-value', prevScore, roundedScore);
             scoreValText.setAttribute('data-score', roundedScore);
-        }
-        
-        
-        if (roundedScore >= 95) {
-            gamificationManager.checkAndUnlockBadge('score_95');
         }
 
         return roundedScore;
@@ -743,6 +739,9 @@ document.addEventListener('DOMContentLoaded', () => {
         updateProductivityReports();
 
         
+        gamificationManager.recalculateBadges(appState);
+
+        
         updateProfileXPPanel();
 
         
@@ -750,6 +749,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         
         renderCalendarInbox();
+        
+        
+        renderProfileStatsPanel();
     }
 
     
@@ -757,6 +759,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateProfileXPPanel();
         updateDashboardCards();
         renderAchievementsTab();
+        renderProfileStatsPanel();
     }
 
     function updateProfileXPPanel() {
@@ -767,12 +770,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const percent = Math.min(100, (gamificationManager.xp / xpNeeded) * 100);
         
         document.getElementById('user-xp-fill').style.width = `${percent}%`;
-        document.getElementById('user-xp-text').textContent = `${gamificationManager.xp} / ${xpNeeded} XP`;
+        document.getElementById('user-xp-text').textContent = `XP: ${gamificationManager.xp} / ${xpNeeded} (${xpNeeded - gamificationManager.xp} XP remaining)`;
         
         const nextXpText = document.getElementById('ach-xp-to-go');
         if (nextXpText) {
             nextXpText.textContent = `${xpNeeded - gamificationManager.xp} XP`;
         }
+    }
+
+    function renderProfileStatsPanel() {
+        const levelEl = document.getElementById('stat-current-level');
+        const xpEl = document.getElementById('stat-current-xp');
+        const totalXpEl = document.getElementById('stat-total-xp');
+        const createdEl = document.getElementById('stat-tasks-created');
+        const completedEl = document.getElementById('stat-tasks-completed');
+        const currentStreakEl = document.getElementById('stat-current-streak');
+        const longestStreakEl = document.getElementById('stat-longest-streak');
+        const prodScoreEl = document.getElementById('stat-prod-score');
+
+        if (levelEl) levelEl.textContent = gamificationManager.level;
+        if (xpEl) xpEl.textContent = gamificationManager.xp;
+        if (totalXpEl) totalXpEl.textContent = gamificationManager.totalXpEarned;
+        if (createdEl) createdEl.textContent = appState.totalTasksCreated || 0;
+        if (completedEl) completedEl.textContent = appState.totalTasksCompleted || 0;
+        
+        const maxStreak = Math.max(0, ...appState.habits.map(h => h.streak));
+        const longestStreak = Math.max(0, ...appState.habits.map(h => h.longestStreak || 0));
+        if (currentStreakEl) currentStreakEl.textContent = maxStreak;
+        if (longestStreakEl) longestStreakEl.textContent = longestStreak;
+        if (prodScoreEl) prodScoreEl.textContent = appState.productivityScore || 50;
     }
 
     function getRankTitle(level) {
@@ -1504,6 +1530,104 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.style.transition = 'transform 0.4s ease';
         }
     });
+
+    
+    const settingsToggle = document.getElementById('settings-toggle');
+    const settingsModal = document.getElementById('settings-modal');
+    
+    if (settingsToggle && settingsModal) {
+        settingsToggle.addEventListener('click', () => openModal(settingsModal));
+        document.getElementById('close-settings-modal-btn').addEventListener('click', () => closeModal(settingsModal));
+        document.getElementById('close-settings-modal-btn2').addEventListener('click', () => closeModal(settingsModal));
+    }
+
+    const confirmResetModal = document.getElementById('confirm-reset-modal');
+    const confirmResetMessage = document.getElementById('confirm-reset-message');
+    const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+    const confirmOkBtn = document.getElementById('confirm-ok-btn');
+    let activeResetType = null;
+
+    const resetMessages = {
+        xp: 'This will reset your current XP and total XP earned to 0. Are you sure?',
+        level: 'This will reset your current level back to 1. Are you sure?',
+        badges: 'This will lock all achievements and badges. Are you sure?',
+        habits: 'This will delete all of your habits and their check-in histories. Are you sure?',
+        analytics: 'This will reset your tasks created and completed statistics counters, and set all tasks status back to pending. Are you sure?',
+        all: 'This will permanently delete all tasks, habits, stats, and achievements data. This action is irreversible. Are you sure?'
+    };
+
+    document.querySelectorAll('.reset-opt-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const type = btn.getAttribute('data-reset');
+            activeResetType = type;
+            confirmResetMessage.textContent = resetMessages[type] || 'Are you sure you want to reset this data?';
+            openModal(confirmResetModal);
+        });
+    });
+
+    if (confirmCancelBtn) {
+        confirmCancelBtn.addEventListener('click', () => closeModal(confirmResetModal));
+    }
+
+    if (confirmOkBtn) {
+        confirmOkBtn.addEventListener('click', () => {
+            if (activeResetType) {
+                resetStorage(activeResetType);
+                closeModal(confirmResetModal);
+                closeModal(settingsModal);
+                alert('Data successfully reset!');
+                window.location.reload();
+            }
+        });
+    }
+
+    // Backup & Portability handlers
+    const exportBtn = document.getElementById('export-data-btn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', () => {
+            const backup = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                backup[key] = localStorage.getItem(key);
+            }
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `taskflow_backup_${Date.now()}.json`);
+            document.body.appendChild(dlAnchor);
+            dlAnchor.click();
+            dlAnchor.remove();
+        });
+    }
+
+    const importTriggerBtn = document.getElementById('import-data-trigger-btn');
+    const fileInput = document.getElementById('import-data-file');
+    
+    if (importTriggerBtn && fileInput) {
+        importTriggerBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const backup = JSON.parse(event.target.result);
+                    localStorage.clear();
+                    for (const [key, val] of Object.entries(backup)) {
+                        localStorage.setItem(key, val);
+                    }
+                    alert('Data successfully imported!');
+                    window.location.reload();
+                } catch(err) {
+                    alert('Error: Invalid backup file format.');
+                }
+            };
+            reader.readAsText(file);
+        });
+    }
 
     
     setTimeout(() => {
