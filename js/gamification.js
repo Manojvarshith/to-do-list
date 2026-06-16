@@ -91,6 +91,7 @@ export class GamificationManager {
         `;
         document.body.appendChild(toast);
         this.playSynthesizedJingle('levelup');
+        createCelebrationParticles();
         setTimeout(() => {
             toast.classList.add('slide-out-fade');
             toast.addEventListener('animationend', () => toast.remove());
@@ -110,6 +111,7 @@ export class GamificationManager {
         `;
         document.body.appendChild(toast);
         this.playSynthesizedJingle('badge');
+        createCelebrationParticles();
         setTimeout(() => {
             toast.classList.add('slide-out-fade');
             toast.addEventListener('animationend', () => toast.remove());
@@ -169,5 +171,51 @@ export class GamificationManager {
         } catch (e) {
             console.error('Audio synthesis failed:', e);
         }
+    }
+}
+
+// Particle System for Achievement Celebrations
+function createCelebrationParticles() {
+    // Respect user reduces motion settings
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+    }
+    const particleCount = 60;
+    const colors = ['#6366f1', '#ec4899', '#3b82f6', '#f59e0b', '#10b981', '#a855f7'];
+    
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'celebration-particle';
+        
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        particle.style.background = color;
+        
+        if (Math.random() > 0.5) {
+            particle.style.borderRadius = '0';
+        }
+        
+        particle.style.left = `${centerX}px`;
+        particle.style.top = `${centerY}px`;
+        
+        const angle = Math.random() * Math.PI * 2;
+        const velocity = 80 + Math.random() * 200;
+        const tx = Math.cos(angle) * velocity;
+        const ty = Math.sin(angle) * velocity;
+        
+        particle.style.setProperty('--tx', `${tx}px`);
+        particle.style.setProperty('--ty', `${ty}px`);
+        
+        const size = 6 + Math.random() * 8;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        
+        document.body.appendChild(particle);
+        
+        particle.addEventListener('animationend', () => {
+            particle.remove();
+        });
     }
 }

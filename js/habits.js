@@ -134,8 +134,35 @@ export class HabitManager {
         this.onStateUpdate();
     }
 
-    // Renders the contribution heatmap onto a canvas element
-    drawHeatmap(canvasId, isDarkTheme) {
+    // Renders the contribution heatmap onto a canvas element with optional progress animation
+    drawHeatmap(canvasId, isDarkTheme, animate = true) {
+        if (animate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            if (this.heatmapAnimationId) {
+                cancelAnimationFrame(this.heatmapAnimationId);
+            }
+            let startTime = null;
+            const duration = 1200; // 1.2s animation
+            
+            const animateFunc = (time) => {
+                if (!startTime) startTime = time;
+                const progress = Math.min((time - startTime) / duration, 1);
+                this.renderHeatmapState(canvasId, isDarkTheme, progress);
+                
+                if (progress < 1) {
+                    this.heatmapAnimationId = requestAnimationFrame(animateFunc);
+                } else {
+                    this.heatmapAnimationId = null;
+                    this.setupHeatmapHover(canvasId);
+                }
+            };
+            this.heatmapAnimationId = requestAnimationFrame(animateFunc);
+        } else {
+            this.renderHeatmapState(canvasId, isDarkTheme, 1.0);
+            this.setupHeatmapHover(canvasId);
+        }
+    }
+
+    renderHeatmapState(canvasId, isDarkTheme, progress) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
@@ -172,42 +199,122 @@ export class HabitManager {
             for (let r = 0; r < rows; r++) {
                 const dateStr = getLocalDateStr(tempDate);
                 
-                // Count how many habits were completed on this date
-                let completions = 0;
-                this.habits.forEach(h => {
-                    if (h.history[dateStr]) completions++;
-                });
+                // Calculate individual cell progress delay (sequential effect column by column)
+                const cellProgress = Math.min(Math.max((progress * 1.3) - (c / cols) * 0.3, 0), 1);
 
-                // Pick color index based on total completions
-                let color = emptyColor;
-                if (completions > 0) {
-                    const colorIndex = Math.min(completions - 1, activeColors.length - 1);
-                    color = activeColors[colorIndex];
+                if (cellProgress > 0) {
+                    // Count how many habits were completed on this date
+                    let completions = 0;
+                    this.habits.forEach(h => {
+                        if (h.history[dateStr]) completions++;
+                    });
+
+                    // Pick color index based on total completions
+                    let color = emptyColor;
+                    if (completions > 0) {
+                        const colorIndex = Math.min(completions - 1, activeColors.length - 1);
+                        color = activeColors[colorIndex];
+                    }
+
+                    // Scaled size and offset for popping effect
+                    const currentCellSize = cellSize * cellProgress;
+                    const offset = (cellSize - currentCellSize) / 2;
+
+                    const x = c * (cellSize + gap) + 20 + offset;
+                    const y = r * (cellSize + gap) + 10 + offset;
+                    
+                    ctx.fillStyle = color;
+                    ctx.strokeStyle = strokeColor;
+                    ctx.lineWidth = 0.5;
+                    
+                    drawRoundedRect(ctx, x, y, currentCellSize, currentCellSize, 2 * cellProgress);
+                    ctx.fill();
+                    ctx.stroke();
                 }
-
-                // Render cell
-                const x = c * (cellSize + gap) + 20;
-                const y = r * (cellSize + gap) + 10;
-                
-                ctx.fillStyle = color;
-                ctx.strokeStyle = strokeColor;
-                ctx.lineWidth = 0.5;
-                
-                // Draw rounded rect helper
-                drawRoundedRect(ctx, x, y, cellSize, cellSize, 2);
-                ctx.fill();
-                ctx.stroke();
 
                 tempDate.setDate(tempDate.getDate() + 1);
             }
         }
         
-        // Add Day labels (Mon, Wed, Fri)
-        ctx.fillStyle = isDarkTheme ? '#94a3b8' : '#64748b';
+        // Add Day labels (Mon, Wed, Fri) with fading opacity
+        ctx.fillStyle = isDarkTheme ? `rgba(148, 163, 184, ${progress})` : `rgba(100, 116, 139, ${progress})`;
         ctx.font = '9px Outfit';
         ctx.fillText('M', 5, 29);
         ctx.fillText('W', 5, 59);
         ctx.fillText('F', 5, 89);
+    }
+
+    setupHeatmapHover(canvasId) {
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) return;
+
+        if (canvas.getAttribute('data-hover-bound')) return;
+        canvas.setAttribute('data-hover-bound', 'true');
+
+        let tooltip = document.getElementById('heatmap-tooltip');
+        if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.id = 'heatmap-tooltip';
+            tooltip.className = 'heatmap-tooltip';
+            document.body.appendChild(tooltip);
+        }
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            const cols = 22;
+            const rows = 7;
+            const cellSize = 12;
+            const gap = 3;
+
+            let hoveredCell = null;
+
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - (cols * 7) + 1);
+            const dayOfWeek = startDate.getDay();
+            startDate.setDate(startDate.getDate() - dayOfWeek);
+
+            for (let c = 0; c < cols; c++) {
+                for (let r = 0; r < rows; r++) {
+                    const x = c * (cellSize + gap) + 20;
+                    const y = r * (cellSize + gap) + 10;
+
+                    if (mouseX >= x && mouseX <= x + cellSize && mouseY >= y && mouseY <= y + cellSize) {
+                        const tempDate = new Date(startDate);
+                        tempDate.setDate(tempDate.getDate() + (c * 7) + r);
+                        
+                        const dateStr = getLocalDateStr(tempDate);
+                        let completions = 0;
+                        this.habits.forEach(h => {
+                            if (h.history[dateStr]) completions++;
+                        });
+
+                        hoveredCell = {
+                            date: tempDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                            count: completions
+                        };
+                        break;
+                    }
+                }
+                if (hoveredCell) break;
+            }
+
+            if (hoveredCell) {
+                tooltip.innerHTML = `<strong>${hoveredCell.count} ${hoveredCell.count === 1 ? 'habit' : 'habits'}</strong> completed on ${hoveredCell.date}`;
+                tooltip.style.left = `${e.clientX + 12}px`;
+                tooltip.style.top = `${e.clientY - 35}px`;
+                tooltip.classList.add('visible');
+            } else {
+                tooltip.classList.remove('visible');
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            const tooltip = document.getElementById('heatmap-tooltip');
+            if (tooltip) tooltip.classList.remove('visible');
+        });
     }
 }
 

@@ -112,6 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pane.classList.remove('active');
                 if (pane.id === `tab-${targetTab}`) {
                     pane.classList.add('active');
+                    triggerTabAnimations(pane);
                 }
             });
 
@@ -133,7 +134,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (targetTab === 'calendar') {
                 calendarManager.render();
             } else if (targetTab === 'dashboard') {
+                window.shouldAnimateHeatmapOnce = true;
+                renderAll();
                 setTimeout(renderPerformanceChart, 100);
+            } else if (targetTab === 'habits') {
+                window.shouldAnimateHeatmapOnce = true;
+                renderAll();
             }
         });
     });
@@ -321,16 +327,42 @@ document.addEventListener('DOMContentLoaded', () => {
         closeModal(editTaskModal);
     });
 
-    // Delete tasks click actions
+    // Delete tasks click actions with deletion animation
     window.deleteTask = function(id) {
-        taskManager.deleteTask(id, () => {
-            renderAll();
-        });
+        const taskItem = document.querySelector(`.task-item[data-id="${id}"]`);
+        if (taskItem && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            taskItem.classList.remove('task-item-new');
+            taskItem.classList.add('task-item-delete');
+            taskItem.addEventListener('animationend', () => {
+                taskManager.deleteTask(id, () => {
+                    renderAll();
+                });
+            });
+        } else {
+            taskManager.deleteTask(id, () => {
+                renderAll();
+            });
+        }
     };
 
-    // Toggle complete click actions
+    // Toggle complete click actions with completion bounce delay
     window.toggleComplete = function(id) {
-        taskManager.toggleComplete(id);
+        const taskItem = document.querySelector(`.task-item[data-id="${id}"]`);
+        if (taskItem && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            const isChecking = !taskItem.classList.contains('completed');
+            if (isChecking) {
+                taskItem.classList.remove('task-item-new');
+                taskItem.classList.add('completed');
+                setTimeout(() => {
+                    taskManager.toggleComplete(id);
+                }, 450);
+            } else {
+                taskItem.classList.remove('completed');
+                taskManager.toggleComplete(id);
+            }
+        } else {
+            taskManager.toggleComplete(id);
+        }
     };
 
     // Pause/Resume Recurrence click actions
@@ -589,7 +621,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const total = appState.tasks.length;
         const completed = appState.tasks.filter(t => t.completed).length;
         const overdue = countOverdueTasks();
-        const habitsCount = appState.habits.length;
         
         let score = 50; // Base baseline
 
@@ -615,15 +646,28 @@ document.addEventListener('DOMContentLoaded', () => {
         // Bound between 0 and 100
         const roundedScore = Math.max(0, Math.min(100, Math.round(score)));
         
+        const scoreValText = document.getElementById('score-value');
+        const prevScore = scoreValText ? (parseInt(scoreValText.getAttribute('data-score')) || 0) : 0;
+
         // Update circular ring offset (263.8 circumference)
         const scoreRing = document.getElementById('score-ring');
         if (scoreRing) {
             const offset = 263.8 - (263.8 * roundedScore / 100);
             scoreRing.style.strokeDashoffset = offset;
         }
-        
-        const scoreValText = document.getElementById('score-value');
-        if (scoreValText) scoreValText.textContent = roundedScore;
+
+        // Pulse effect if score increases
+        const ringWrap = document.querySelector('.progress-ring-wrap');
+        if (ringWrap && roundedScore > prevScore) {
+            ringWrap.classList.remove('pulse-effect');
+            void ringWrap.offsetWidth; // Force layout recalculation
+            ringWrap.classList.add('pulse-effect');
+        }
+
+        if (scoreValText) {
+            animateCounter('score-value', prevScore, roundedScore);
+            scoreValText.setAttribute('data-score', roundedScore);
+        }
         
         // Check perfectionist badge
         if (roundedScore >= 95) {
@@ -651,7 +695,9 @@ document.addEventListener('DOMContentLoaded', () => {
         renderHabitsBoard();
 
         // 3. Render Canvas heatmap activity calendar
-        habitManager.drawHeatmap('habit-heatmap', isDarkTheme);
+        const shouldAnimateHeatmap = window.shouldAnimateHeatmapOnce || false;
+        habitManager.drawHeatmap('habit-heatmap', isDarkTheme, shouldAnimateHeatmap);
+        window.shouldAnimateHeatmapOnce = false;
 
         // 4. Update Dashboard metrics
         calculateProductivityScore();
@@ -698,6 +744,74 @@ document.addEventListener('DOMContentLoaded', () => {
         return 'Productivity Titan';
     }
 
+    // Animated numeric counter helper
+    function animateCounter(elementId, startValue, endValue, duration = 1000) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        
+        let start = parseInt(el.getAttribute('data-value')) || startValue;
+        let end = parseInt(endValue) || 0;
+        
+        if (start === end) {
+            el.textContent = end;
+            el.setAttribute('data-value', end);
+            return;
+        }
+        
+        let startTime = null;
+        
+        function animation(currentTime) {
+            if (!startTime) startTime = currentTime;
+            const progress = Math.min((currentTime - startTime) / duration, 1);
+            const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+            const value = Math.floor(start + easeProgress * (end - start));
+            el.textContent = value;
+            
+            if (progress < 1) {
+                requestAnimationFrame(animation);
+            } else {
+                el.textContent = end;
+                el.setAttribute('data-value', end);
+            }
+        }
+        
+        requestAnimationFrame(animation);
+    }
+
+    // Animated streak days counter helper
+    function animateStreakCounter(elementId, startValue, endValue, duration = 1000) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        
+        let start = parseInt(el.getAttribute('data-value')) || startValue;
+        let end = parseInt(endValue) || 0;
+        
+        if (start === end) {
+            el.textContent = `${end} ${end === 1 ? 'Day' : 'Days'}`;
+            el.setAttribute('data-value', end);
+            return;
+        }
+        
+        let startTime = null;
+        
+        function animation(currentTime) {
+            if (!startTime) startTime = currentTime;
+            const progress = Math.min((currentTime - startTime) / duration, 1);
+            const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+            const value = Math.floor(start + easeProgress * (end - start));
+            el.textContent = `${value} ${value === 1 ? 'Day' : 'Days'}`;
+            
+            if (progress < 1) {
+                requestAnimationFrame(animation);
+            } else {
+                el.textContent = `${end} ${end === 1 ? 'Day' : 'Days'}`;
+                el.setAttribute('data-value', end);
+            }
+        }
+        
+        requestAnimationFrame(animation);
+    }
+
     // Update stats counters on dashboard page
     function updateDashboardCards() {
         const total = appState.tasks.length;
@@ -705,46 +819,86 @@ document.addEventListener('DOMContentLoaded', () => {
         const pending = total - completed;
         const overdue = countOverdueTasks();
 
-        document.getElementById('dash-total').textContent = total;
-        document.getElementById('dash-pending').textContent = pending;
-        document.getElementById('dash-completed').textContent = completed;
-        document.getElementById('dash-overdue').textContent = overdue;
+        animateCounter('dash-total', 0, total);
+        animateCounter('dash-pending', 0, pending);
+        animateCounter('dash-completed', 0, completed);
+        animateCounter('dash-overdue', 0, overdue);
 
         // Active Streak Count
         const maxStreak = Math.max(0, ...appState.habits.map(h => h.streak));
-        document.getElementById('dash-streak-count').textContent = `${maxStreak} ${maxStreak === 1 ? 'Day' : 'Days'}`;
+        animateStreakCounter('dash-streak-count', 0, maxStreak);
 
         // Dynamic reminders panel
         const remindersList = document.getElementById('dash-reminders-list');
-        const upcomingTasks = appState.tasks
-            .filter(t => !t.completed && t.dueDate && t.dueTime)
-            .sort((a,b) => new Date(`${a.dueDate}T${a.dueTime}`) - new Date(`${b.dueDate}T${b.dueTime}`))
-            .slice(0, 3);
+        if (remindersList) {
+            const upcomingTasks = appState.tasks
+                .filter(t => !t.completed && t.dueDate && t.dueTime)
+                .sort((a,b) => new Date(`${a.dueDate}T${a.dueTime}`) - new Date(`${b.dueDate}T${b.dueTime}`))
+                .slice(0, 3);
+            
+            const currentIds = upcomingTasks.map(t => t.id);
+            
+            if (upcomingTasks.length === 0) {
+                remindersList.innerHTML = '<li class="reminder-item slide-in-notification"><span class="rem-title">No upcoming alerts scheduled</span></li>';
+            } else {
+                // Remove deleted/obsolete reminders with animation
+                const childrenArray = Array.from(remindersList.children);
+                childrenArray.forEach(child => {
+                    const id = child.getAttribute('data-id');
+                    if (id && !currentIds.includes(id)) {
+                        child.classList.remove('slide-in-notification');
+                        child.classList.add('slide-out-notification');
+                        setTimeout(() => {
+                            try { child.remove(); } catch(e) {}
+                        }, 500);
+                    }
+                });
 
-        if (upcomingTasks.length === 0) {
-            remindersList.innerHTML = '<li class="reminder-item"><span class="rem-title">No upcoming alerts scheduled</span></li>';
-        } else {
-            remindersList.innerHTML = upcomingTasks.map(t => `
-                <li class="reminder-item">
-                    <div>
-                        <span class="rem-title">${t.title}</span>
-                        <span class="rem-time"><i class="fa-solid fa-clock"></i> ${t.dueDate} at ${t.dueTime}</span>
-                    </div>
-                    <span class="badge badge-${t.priority}">${t.priority}</span>
-                </li>
-            `).join('');
+                // Add or update elements
+                upcomingTasks.forEach((t, index) => {
+                    let existingItem = remindersList.querySelector(`li[data-id="${t.id}"]`);
+                    if (!existingItem) {
+                        const li = document.createElement('li');
+                        li.className = 'reminder-item slide-in-notification';
+                        li.setAttribute('data-id', t.id);
+                        li.innerHTML = `
+                            <div>
+                                <span class="rem-title">${escapeHTML(t.title)}</span>
+                                <span class="rem-time"><i class="fa-solid fa-clock"></i> ${t.dueDate} at ${t.dueTime}</span>
+                            </div>
+                            <span class="badge badge-${t.priority}">${t.priority}</span>
+                        `;
+                        if (index < remindersList.children.length) {
+                            remindersList.insertBefore(li, remindersList.children[index]);
+                        } else {
+                            remindersList.appendChild(li);
+                        }
+                    } else {
+                        // Update contents if item already exists
+                        existingItem.innerHTML = `
+                            <div>
+                                <span class="rem-title">${escapeHTML(t.title)}</span>
+                                <span class="rem-time"><i class="fa-solid fa-clock"></i> ${t.dueDate} at ${t.dueTime}</span>
+                            </div>
+                            <span class="badge badge-${t.priority}">${t.priority}</span>
+                        `;
+                    }
+                });
+            }
         }
 
         // Showcase Badges Dashboard Panel
         const showcaseFlex = document.getElementById('dash-badges-flex');
-        showcaseFlex.innerHTML = BADGES.map(badge => {
-            const isUnlocked = gamificationManager.unlockedBadges.includes(badge.id);
-            return `
-                <div class="badge-showcase-tile ${isUnlocked ? 'unlocked' : ''}" title="${badge.name}: ${badge.desc}">
-                    <i class="fa-solid ${badge.icon}"></i>
-                </div>
-            `;
-        }).join('');
+        if (showcaseFlex) {
+            showcaseFlex.innerHTML = BADGES.map(badge => {
+                const isUnlocked = gamificationManager.unlockedBadges.includes(badge.id);
+                return `
+                    <div class="badge-showcase-tile ${isUnlocked ? 'unlocked' : ''}" title="${badge.name}: ${badge.desc}">
+                        <i class="fa-solid ${badge.icon}"></i>
+                    </div>
+                `;
+            }).join('');
+        }
     }
 
     // ==========================================================================
@@ -877,8 +1031,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             }
 
+            const isNew = (Date.now() - task.createdAt) < 1500;
+            const newClass = isNew ? 'task-item-new' : '';
+
             return `
-                <li class="task-item ${task.completed ? 'completed' : ''}" data-id="${task.id}">
+                <li class="task-item ${task.completed ? 'completed' : ''} ${newClass}" data-id="${task.id}">
                     <div class="task-item-left">
                         <label class="checkbox-wrapper" aria-label="Mark task complete">
                             <input type="checkbox" ${task.completed ? 'checked' : ''} onclick="toggleComplete('${task.id}')">
@@ -989,7 +1146,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     ${checkboxesHTML}
                     <td style="text-align: center;">
-                        <span class="habit-streak-badge">
+                        <span class="habit-streak-badge ${habit.streak > 0 ? 'active-streak-glow' : ''}">
                             <i class="fa-solid fa-fire"></i> ${habit.streak}d
                         </span>
                     </td>
@@ -1032,19 +1189,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================================================
-    // RENDERS CHART.JS ANALTICS GRAPHS
-    // ==========================================================================
-    // ==========================================================================
     // RENDERS CHART.JS ANALTICS GRAPHS (WEEKLY & MONTHLY PERFORMANCE REPORTS)
     // ==========================================================================
     function renderPerformanceChart() {
         const canvas = document.getElementById('analytics-chart');
         if (!canvas) return;
-
-        // Destroy existing instance to prevent errors
-        if (performanceChart) {
-            performanceChart.destroy();
-        }
 
         const labels = [];
         const data = [];
@@ -1083,6 +1232,19 @@ document.addEventListener('DOMContentLoaded', () => {
         gradient.addColorStop(0, 'rgba(99, 102, 241, 0.35)');
         gradient.addColorStop(1, 'rgba(99, 102, 241, 0.00)');
 
+        // Reuse existing chart instance for beautiful smooth transition morphing
+        if (performanceChart) {
+            performanceChart.data.labels = labels;
+            performanceChart.data.datasets[0].data = data;
+            performanceChart.data.datasets[0].pointRadius = activeChartView === 'weekly' ? 4 : 2;
+            performanceChart.data.datasets[0].backgroundColor = gradient;
+            performanceChart.options.scales.y.grid.color = gridColor;
+            performanceChart.options.scales.y.ticks.color = labelColor;
+            performanceChart.options.scales.x.ticks.color = labelColor;
+            performanceChart.update();
+            return;
+        }
+
         performanceChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -1107,6 +1269,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false }
+                },
+                // Progressive line drawing animation settings
+                animation: {
+                    duration: 1200,
+                    easing: 'easeOutQuart'
+                },
+                animations: {
+                    y: {
+                        duration: 1000,
+                        easing: 'easeOutQuart',
+                        from: 150
+                    }
                 },
                 scales: {
                     y: {
@@ -1212,7 +1386,99 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/'/g, '&#039;');
     }
 
-    // Run Initial renders
-    renderAll();
-    renderAchievementsTab();
+    // Trigger staggered entrance animation for cards/elements in a given pane
+    function triggerTabAnimations(activePane) {
+        if (!activePane || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        
+        const cards = activePane.querySelectorAll('.metric-card, .dashboard-welcome, .dashboard-card, .analytics-card, .task-item, .habit-item, .calendar-grid-container-card, .calendar-sidebar-panel, .focus-arena-card, .badge-card, .achievement-card');
+        
+        cards.forEach((card, index) => {
+            card.classList.remove('stagger-in');
+            void card.offsetWidth; // Force layout recalculation
+            card.style.animationDelay = `${index * 0.06}s`;
+            card.classList.add('stagger-in');
+        });
+    }
+
+    // Global Mouse spotlight glow radial position update
+    const mouseGlow = document.getElementById('mouse-glow');
+    if (mouseGlow) {
+        document.addEventListener('mousemove', (e) => {
+            mouseGlow.style.left = `${e.clientX}px`;
+            mouseGlow.style.top = `${e.clientY}px`;
+        });
+    }
+
+    // Event Delegation for 3D card tilt & Magnetic cursor effect on buttons
+    document.addEventListener('mousemove', (e) => {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        // 1. 3D Card Tilt on Hover
+        const card = e.target.closest('.metric-card, .dashboard-card, .analytics-card, .achievement-card');
+        if (card) {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            const rotateX = ((y - centerY) / centerY) * 10; // Max 10 degrees tilt
+            const rotateY = -((x - centerX) / centerX) * 10;
+            
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px) scale(1.008)`;
+            card.style.transition = 'transform 0.08s ease-out';
+        }
+        
+        // 2. Magnetic cursor effect for actions buttons
+        const btn = e.target.closest('.primary-btn, .secondary-btn, .sidebar-theme-btn, .timer-mode-btn, .cal-view-btn, .timer-control-btn');
+        if (btn) {
+            const rect = btn.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            const deltaX = e.clientX - centerX;
+            const deltaY = e.clientY - centerY;
+            
+            const strength = 0.3; // Magnet strength
+            const mx = deltaX * strength;
+            const my = deltaY * strength;
+            
+            btn.style.transform = `translate(${mx}px, ${my}px) scale(1.02)`;
+            btn.style.transition = 'transform 0.08s ease-out';
+        }
+    });
+
+    // Reset transformations when mouse leaves
+    document.addEventListener('mouseout', (e) => {
+        const card = e.target.closest('.metric-card, .dashboard-card, .analytics-card, .achievement-card');
+        if (card && (!e.relatedTarget || !card.contains(e.relatedTarget))) {
+            card.style.transform = '';
+            card.style.transition = 'transform 0.4s ease';
+        }
+        
+        const btn = e.target.closest('.primary-btn, .secondary-btn, .sidebar-theme-btn, .timer-mode-btn, .cal-view-btn, .timer-control-btn');
+        if (btn && (!e.relatedTarget || !btn.contains(e.relatedTarget))) {
+            btn.style.transform = '';
+            btn.style.transition = 'transform 0.4s ease';
+        }
+    });
+
+    // Page Entrance splash screen fade out and trigger animations
+    setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        if (splash) {
+            splash.classList.add('fade-out');
+            
+            // Trigger animation for heatmap
+            window.shouldAnimateHeatmapOnce = true;
+            
+            // Execute renders so that charts draw and counters count up visually
+            renderAll();
+            renderAchievementsTab();
+            
+            // Stagger-in elements on load
+            triggerTabAnimations(document.querySelector('.tab-pane.active'));
+        }
+    }, 1000);
 });
