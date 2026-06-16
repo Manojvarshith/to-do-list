@@ -1,7 +1,4 @@
-/**
- * TaskFlow Habits Module
- * Tracks streaks, daily checkouts, completion metrics, and renders a habit heatmap calendar.
- */
+
 
 import { saveHabits } from './storage.js';
 
@@ -22,7 +19,7 @@ export class HabitManager {
             title: title.trim(),
             category: category || 'health',
             createdAt: Date.now(),
-            history: {}, // Format: { "YYYY-MM-DD": true }
+            history: {}, 
             streak: 0,
             longestStreak: 0
         };
@@ -55,7 +52,7 @@ export class HabitManager {
 
                 const updatedHabit = { ...habit, history: updatedHistory };
                 
-                // Recalculate streaks
+                
                 this.calculateStreaks(updatedHabit);
                 return updatedHabit;
             }
@@ -67,7 +64,7 @@ export class HabitManager {
         if (habitChecked) {
             this.gamificationManager.addXp(20, 'Habit Completed');
             
-            // Check streak badges
+            
             const currentHabit = this.habits.find(h => h.id === id);
             if (currentHabit) {
                 if (currentHabit.streak >= 7) {
@@ -87,11 +84,11 @@ export class HabitManager {
         let currentStreak = 0;
         let tempDate = new Date();
         
-        // If not checked today and not checked yesterday, streak is broken
+        
         if (!history[todayStr] && !history[yesterdayStr]) {
             currentStreak = 0;
         } else {
-            // Start calculation from yesterday if today is not yet checked
+            
             if (!history[todayStr]) {
                 tempDate.setDate(tempDate.getDate() - 1);
             }
@@ -118,7 +115,7 @@ export class HabitManager {
         const datesChecked = Object.keys(history).filter(d => history[d]);
         const totalChecked = datesChecked.length;
         
-        // Count days since creation
+        
         const msDiff = Date.now() - habit.createdAt;
         const daysSinceCreation = Math.max(1, Math.ceil(msDiff / (1000 * 60 * 60 * 24)));
         const completionRate = Math.min(100, Math.round((totalChecked / daysSinceCreation) * 100));
@@ -134,14 +131,14 @@ export class HabitManager {
         this.onStateUpdate();
     }
 
-    // Renders the contribution heatmap onto a canvas element with optional progress animation
+    
     drawHeatmap(canvasId, isDarkTheme, animate = true) {
         if (animate && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
             if (this.heatmapAnimationId) {
                 cancelAnimationFrame(this.heatmapAnimationId);
             }
             let startTime = null;
-            const duration = 1200; // 1.2s animation
+            const duration = 1200; 
             
             const animateFunc = (time) => {
                 if (!startTime) startTime = time;
@@ -168,28 +165,28 @@ export class HabitManager {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Configuration
-        const cols = 22; // 22 weeks (~150 days)
-        const rows = 7; // 7 days of the week
+        
+        const cols = 22; 
+        const rows = 7; 
         const cellSize = 12;
         const gap = 3;
         
-        // Clear canvas
+        
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Styling colors based on theme
+        
         const emptyColor = isDarkTheme ? '#1e293b' : '#e2e8f0';
         const strokeColor = isDarkTheme ? '#334155' : '#cbd5e1';
         
-        // Colors mapping completion counts (Low to high density)
+        
         const activeColors = isDarkTheme 
-            ? ['#312e81', '#4338ca', '#4f46e5', '#6366f1', '#818cf8'] // Indigo gradient
-            : ['#e0e7ff', '#c7d2fe', '#a5b4fc', '#818cf8', '#6366f1']; // Light Indigo gradient
+            ? ['#312e81', '#4338ca', '#4f46e5', '#6366f1', '#818cf8'] 
+            : ['#e0e7ff', '#c7d2fe', '#a5b4fc', '#818cf8', '#6366f1']; 
 
-        // Calculate starting date: 22 weeks ago Sunday
+        
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - (cols * 7) + 1);
-        // Snap to preceding Sunday
+        
         const dayOfWeek = startDate.getDay();
         startDate.setDate(startDate.getDate() - dayOfWeek);
 
@@ -199,24 +196,24 @@ export class HabitManager {
             for (let r = 0; r < rows; r++) {
                 const dateStr = getLocalDateStr(tempDate);
                 
-                // Calculate individual cell progress delay (sequential effect column by column)
+                
                 const cellProgress = Math.min(Math.max((progress * 1.3) - (c / cols) * 0.3, 0), 1);
 
                 if (cellProgress > 0) {
-                    // Count how many habits were completed on this date
+                    
                     let completions = 0;
                     this.habits.forEach(h => {
                         if (h.history[dateStr]) completions++;
                     });
 
-                    // Pick color index based on total completions
+                    
                     let color = emptyColor;
                     if (completions > 0) {
                         const colorIndex = Math.min(completions - 1, activeColors.length - 1);
                         color = activeColors[colorIndex];
                     }
 
-                    // Scaled size and offset for popping effect
+                    
                     const currentCellSize = cellSize * cellProgress;
                     const offset = (cellSize - currentCellSize) / 2;
 
@@ -236,7 +233,7 @@ export class HabitManager {
             }
         }
         
-        // Add Day labels (Mon, Wed, Fri) with fading opacity
+        
         ctx.fillStyle = isDarkTheme ? `rgba(148, 163, 184, ${progress})` : `rgba(100, 116, 139, ${progress})`;
         ctx.font = '9px Outfit';
         ctx.fillText('M', 5, 29);
@@ -318,7 +315,7 @@ export class HabitManager {
     }
 }
 
-// Draw rounded rectangles on Canvas API
+
 function drawRoundedRect(ctx, x, y, width, height, radius) {
     ctx.beginPath();
     ctx.moveTo(x + radius, y);
@@ -333,7 +330,7 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
     ctx.closePath();
 }
 
-// Get timezone-offset-safe date string YYYY-MM-DD
+
 export function getLocalDateStr(date) {
     const offset = date.getTimezoneOffset();
     const localDate = new Date(date.getTime() - (offset * 60 * 1000));

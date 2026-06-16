@@ -1,7 +1,4 @@
-/**
- * TaskFlow Gamification Module
- * Tracks XP rewards, level progression, and achievement badge unlocking.
- */
+
 
 import { saveGamification } from './storage.js';
 
@@ -21,7 +18,7 @@ export class GamificationManager {
         this.xp = state.xp;
         this.level = state.level;
         this.unlockedBadges = state.unlockedBadges;
-        this.onStateUpdate = onStateUpdate; // Callback to trigger app redraw
+        this.onStateUpdate = onStateUpdate; 
     }
 
     getXpForNextLevel() {
@@ -61,7 +58,7 @@ export class GamificationManager {
         this.onStateUpdate({ xp: this.xp, level: this.level, unlockedBadges: this.unlockedBadges });
 
         this.showBadgeUnlockToast(badge);
-        // Reward additional badge XP
+        
         setTimeout(() => this.addXp(badge.xp, `Badge Unlock: ${badge.name}`), 1000);
     }
 
@@ -118,7 +115,7 @@ export class GamificationManager {
         }, 5000);
     }
 
-    // Synthesizes level-up/badge audio jingles using Web Audio API
+    
     playSynthesizedJingle(type) {
         try {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -128,8 +125,8 @@ export class GamificationManager {
             const now = ctx.currentTime;
             
             if (type === 'levelup') {
-                // Happy ascending triad arpeggio
-                const notes = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5
+                
+                const notes = [261.63, 329.63, 392.00, 523.25]; 
                 notes.forEach((freq, index) => {
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
@@ -148,8 +145,8 @@ export class GamificationManager {
                     osc.stop(now + index * 0.12 + 0.4);
                 });
             } else if (type === 'badge') {
-                // Sparkling chime sound
-                const notes = [523.25, 659.25, 783.99, 987.77, 1046.50]; // C5, E5, G5, B5, C6
+                
+                const notes = [523.25, 659.25, 783.99, 987.77, 1046.50]; 
                 notes.forEach((freq, index) => {
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
@@ -174,9 +171,9 @@ export class GamificationManager {
     }
 }
 
-// Particle System for Achievement Celebrations
+
 function createCelebrationParticles() {
-    // Respect user reduces motion settings
+    
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         return;
     }

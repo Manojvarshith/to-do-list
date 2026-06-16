@@ -1,7 +1,4 @@
-/**
- * TaskFlow Tasks Module
- * Manages core tasks, category indexing, and recurrence mathematical scheduling.
- */
+
 
 import { saveTasks } from './storage.js';
 
@@ -48,7 +45,7 @@ export class TaskManager {
         this.tasks.unshift(newTask);
         this.save();
         
-        // Award task XP
+        
         this.gamificationManager.addXp(10, 'Task Created');
         
         return newTask;
@@ -57,7 +54,7 @@ export class TaskManager {
     updateTask(id, updatedFields) {
         this.tasks = this.tasks.map(task => {
             if (task.id === id) {
-                // If toggled from non-recurring to recurring, create recurrence object
+                
                 return { ...task, ...updatedFields };
             }
             return task;
@@ -66,7 +63,7 @@ export class TaskManager {
     }
 
     deleteTask(id, callback) {
-        // Run slide-out animation trigger
+        
         const element = document.querySelector(`.task-item[data-id="${id}"]`);
         if (element) {
             element.classList.add('slide-out');
@@ -93,20 +90,20 @@ export class TaskManager {
                 const toggledStatus = !task.completed;
                 taskCompleted = toggledStatus;
                 
-                // If it's a recurring task, schedule the next occurrence instead of simply completing it
+                
                 if (toggledStatus && task.isRecurring && task.recurrence && !task.recurrence.isPaused) {
                     isTaskRecurring = true;
                     const nextSchedule = calculateNextOccurrence(task);
                     if (nextSchedule) {
                         nextDate = nextSchedule.dueDate;
                         nextTime = nextSchedule.dueTime;
-                        // Return reset task with updated times, keeping completed false
+                        
                         return {
                             ...task,
                             dueDate: nextDate,
                             dueTime: nextTime,
-                            completed: false, // Reset completion for next trigger
-                            lastReminderTriggered: null // Reset reminder alert flag
+                            completed: false, 
+                            lastReminderTriggered: null 
                         };
                     }
                 }
@@ -118,7 +115,7 @@ export class TaskManager {
 
         this.save();
 
-        // Gamification bonuses
+        
         if (taskCompleted) {
             const task = this.tasks.find(t => t.id === id) || { priority: 'medium' };
             let xpEarned = 15;
@@ -133,7 +130,7 @@ export class TaskManager {
                 reason += ' (High Priority Bonus)';
             }
             
-            // Night Owl badge check (between 10 PM and 4 AM)
+            
             const hour = new Date().getHours();
             if (hour >= 22 || hour < 4) {
                 this.gamificationManager.checkAndUnlockBadge('night_owl');
@@ -142,7 +139,7 @@ export class TaskManager {
             this.gamificationManager.addXp(xpEarned, reason);
             this.gamificationManager.checkAndUnlockBadge('first_task');
             
-            // Check totals badge
+            
             const totalCompleted = this.tasks.filter(t => t.completed).length;
             if (totalCompleted >= 10) {
                 this.gamificationManager.checkAndUnlockBadge('tasks_10');
@@ -177,7 +174,7 @@ export class TaskManager {
                     ...task,
                     dueDate: getLocalDateStr(now),
                     dueTime: String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0'),
-                    lastReminderTriggered: null // Allow it to sound again at snoozed time
+                    lastReminderTriggered: null 
                 };
             }
             return task;
@@ -191,7 +188,7 @@ export class TaskManager {
     }
 }
 
-// Smart recurrence calculator math
+
 export function calculateNextOccurrence(task) {
     if (!task.isRecurring || !task.recurrence) return null;
     const rec = task.recurrence;
@@ -222,7 +219,7 @@ export function calculateNextOccurrence(task) {
             break;
     }
 
-    // Bound minutes/hours within active operating hours window
+    
     if ((rec.type === 'minutes' || rec.type === 'hours') && rec.startTime && rec.endTime) {
         const [startH, startM] = rec.startTime.split(':').map(Number);
         const [endH, endM] = rec.endTime.split(':').map(Number);
@@ -235,11 +232,11 @@ export function calculateNextOccurrence(task) {
         const endVal = endH * 60 + endM;
 
         if (nextVal > endVal) {
-            // Advance to next day at start boundary
+            
             nextDate.setDate(nextDate.getDate() + 1);
             nextDate.setHours(startH, startM, 0, 0);
         } else if (nextVal < startVal) {
-            // Align to start boundary of today
+            
             nextDate.setHours(startH, startM, 0, 0);
         }
     }
@@ -250,7 +247,7 @@ export function calculateNextOccurrence(task) {
     };
 }
 
-// Get timezone-offset-safe date string YYYY-MM-DD
+
 function getLocalDateStr(date) {
     const offset = date.getTimezoneOffset();
     const localDate = new Date(date.getTime() - (offset * 60 * 1000));

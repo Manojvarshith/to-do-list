@@ -1,7 +1,4 @@
-/**
- * TaskFlow Calendar Module
- * Renders interactive calendar schedules: Month view, Week view, and Day view.
- */
+
 
 import { getLocalDateStr } from './habits.js';
 import { CATEGORIES } from './tasks.js';
@@ -12,7 +9,7 @@ export class CalendarManager {
         this.onAddClickCallback = onAddClickCallback;
         
         this.currentDate = new Date();
-        this.currentView = 'month'; // 'month', 'week', 'day'
+        this.currentView = 'month'; 
     }
 
     setTasks(tasks) {
@@ -67,18 +64,18 @@ export class CalendarManager {
         }
     }
 
-    // ==========================================================================
-    // MONTH VIEW GENERATION
-    // ==========================================================================
+    
+    
+    
     renderMonthView(container, headerTitle) {
         const year = this.currentDate.getFullYear();
         const month = this.currentDate.getMonth();
 
-        // Header Title
+        
         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         headerTitle.textContent = `${monthNames[month]} ${year}`;
 
-        // Get first day of month and total days
+        
         const firstDayIndex = new Date(year, month, 1).getDay();
         const totalDays = new Date(year, month + 1, 0).getDate();
         const prevMonthTotalDays = new Date(year, month, 0).getDate();
@@ -93,7 +90,7 @@ export class CalendarManager {
             <div class="calendar-weekday-header">Sat</div>
         `;
 
-        const totalSlots = 42; // 6 rows of 7 days
+        const totalSlots = 42; 
         const todayStr = getLocalDateStr(new Date());
 
         for (let i = 0; i < totalSlots; i++) {
@@ -102,17 +99,17 @@ export class CalendarManager {
             let isCurrentMonth = true;
 
             if (i < firstDayIndex) {
-                // Padding previous month
+                
                 dayNum = prevMonthTotalDays - firstDayIndex + i + 1;
                 currentCellDate = new Date(year, month - 1, dayNum);
                 isCurrentMonth = false;
             } else if (i >= firstDayIndex + totalDays) {
-                // Padding next month
+                
                 dayNum = i - firstDayIndex - totalDays + 1;
                 currentCellDate = new Date(year, month + 1, dayNum);
                 isCurrentMonth = false;
             } else {
-                // Current month days
+                
                 dayNum = i - firstDayIndex + 1;
                 currentCellDate = new Date(year, month, dayNum);
             }
@@ -120,7 +117,7 @@ export class CalendarManager {
             const cellDateStr = getLocalDateStr(currentCellDate);
             const isToday = (cellDateStr === todayStr);
 
-            // Filter tasks for this day cell
+            
             const cellTasks = this.tasks.filter(t => t.dueDate === cellDateStr);
 
             let tasksHTML = '';
@@ -148,7 +145,7 @@ export class CalendarManager {
 
         container.innerHTML = gridHTML;
 
-        // Bind drag & drop listeners on cells
+        
         container.querySelectorAll('.calendar-day-cell').forEach(cell => {
             cell.addEventListener('dragover', (e) => {
                 e.preventDefault();
@@ -168,7 +165,7 @@ export class CalendarManager {
             });
 
             cell.addEventListener('click', (e) => {
-                // Don't open if clicked on an actual task tag to complete/edit
+                
                 if (!e.target.closest('.calendar-task-tag')) {
                     const selectedDate = cell.getAttribute('data-date');
                     this.onAddClickCallback(selectedDate);
@@ -176,7 +173,7 @@ export class CalendarManager {
             });
         });
 
-        // Bind dragstart on task tags
+        
         container.querySelectorAll('.calendar-task-tag').forEach(tag => {
             tag.addEventListener('dragstart', (e) => {
                 const taskId = tag.getAttribute('data-task-id');
@@ -186,11 +183,11 @@ export class CalendarManager {
         });
     }
 
-    // ==========================================================================
-    // WEEK VIEW GENERATION
-    // ==========================================================================
+    
+    
+    
     renderWeekView(container, headerTitle) {
-        // Calculate the starting Sunday of current date's week
+        
         const startOfWeek = new Date(this.currentDate);
         const day = startOfWeek.getDay();
         startOfWeek.setDate(startOfWeek.getDate() - day);
@@ -246,7 +243,7 @@ export class CalendarManager {
 
         container.innerHTML = gridHTML;
 
-        // Bind drag & drop on columns
+        
         container.querySelectorAll('.calendar-week-col').forEach(col => {
             const header = col.querySelector('.week-col-header');
             const dateStr = header.getAttribute('data-date');
@@ -268,7 +265,7 @@ export class CalendarManager {
             });
         });
 
-        // Bind dragstart on cards
+        
         container.querySelectorAll('.calendar-week-task-card').forEach(card => {
             card.addEventListener('dragstart', (e) => {
                 const taskId = card.getAttribute('data-task-id');
@@ -277,7 +274,7 @@ export class CalendarManager {
             });
         });
 
-        // Bind add task button
+        
         container.querySelectorAll('.week-col-header').forEach(header => {
             header.querySelector('.week-add-btn').addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -287,9 +284,9 @@ export class CalendarManager {
         });
     }
 
-    // ==========================================================================
-    // DAY VIEW GENERATION
-    // ==========================================================================
+    
+    
+    
     renderDayView(container, headerTitle) {
         const options = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
         headerTitle.textContent = this.currentDate.toLocaleDateString('en-US', options);
@@ -299,14 +296,14 @@ export class CalendarManager {
 
         let timelineHTML = '';
         
-        // Loop 24 hours
+        
         for (let h = 0; h < 24; h++) {
             const timeStr = `${String(h).padStart(2, '0')}:00`;
             const ampm = h >= 12 ? 'PM' : 'AM';
             const displayHour = h % 12 === 0 ? 12 : h % 12;
             const hourLabel = `${displayHour} ${ampm}`;
 
-            // Filter tasks landing in this hour block (HH:MM matching HH:00 to HH:59)
+            
             const hourTasks = dayTasks.filter(t => {
                 if (!t.dueTime) return false;
                 const taskHour = parseInt(t.dueTime.split(':')[0]);
@@ -336,7 +333,7 @@ export class CalendarManager {
             `;
         }
 
-        // Section for tasks without a specific time set
+        
         const untimedTasks = dayTasks.filter(t => !t.dueTime);
         let untimedHTML = '';
         if (untimedTasks.length > 0) {
@@ -364,7 +361,7 @@ export class CalendarManager {
             </div>
         `;
 
-        // Bind drag & drop on timeline columns
+        
         container.querySelectorAll('.timeline-task-col').forEach(col => {
             const timeStr = col.getAttribute('data-time');
             
@@ -392,7 +389,7 @@ export class CalendarManager {
             });
         });
 
-        // Bind dragstart on day view task cards
+        
         container.querySelectorAll('.calendar-day-task-card').forEach(card => {
             card.addEventListener('dragstart', (e) => {
                 const taskId = card.getAttribute('data-task-id');

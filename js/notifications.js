@@ -1,7 +1,4 @@
-/**
- * TaskFlow Notifications & Reminders Module
- * Manages browser push alerts, synthesized notification alarms, and snooze intervals.
- */
+
 
 export class NotificationManager {
     constructor() {
@@ -47,7 +44,7 @@ export class NotificationManager {
         }
     }
 
-    // Synthesizes a pleasant repetitive reminder alarm using Web Audio API
+    
     playAlarmSound() {
         try {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -73,8 +70,8 @@ export class NotificationManager {
         if (!this.audioContext) return;
         const now = this.audioContext.currentTime;
         
-        // Gentle double-tone
-        const notes = [587.33, 880.00]; // D5, A5
+        
+        const notes = [587.33, 880.00]; 
         notes.forEach((freq, idx) => {
             const osc = this.audioContext.createOscillator();
             const gain = this.audioContext.createGain();
@@ -105,19 +102,19 @@ export class NotificationManager {
         }
     }
 
-    // Starts a clock ticking checker loop to detect matching task dates and times
+    
     startReminderCheckLoop(getTasksCallback, triggerReminderUIPopupCallback) {
-        // Set loop running every 20 seconds
+        
         setInterval(() => {
             const tasks = getTasksCallback();
             const now = new Date();
             
-            // Format today's local date string YYYY-MM-DD (timezone-safe)
+            
             const offset = now.getTimezoneOffset();
             const localDate = new Date(now.getTime() - (offset * 60 * 1000));
             const currentDateStr = localDate.toISOString().split('T')[0];
             
-            // Format current hours/minutes (HH:MM)
+            
             const currentHours = String(now.getHours()).padStart(2, '0');
             const currentMins = String(now.getMinutes()).padStart(2, '0');
             const currentTimeStr = `${currentHours}:${currentMins}`;
@@ -125,17 +122,17 @@ export class NotificationManager {
             tasks.forEach(task => {
                 if (task.completed || !task.dueDate || !task.dueTime) return;
                 
-                // Compare date and time (ignoring seconds)
+                
                 if (task.dueDate === currentDateStr && task.dueTime === currentTimeStr) {
-                    // Check if it hasn't been triggered in the last 60 seconds (prevent multiple alerts in same minute)
+                    
                     if (!task.lastReminderTriggered || (Date.now() - task.lastReminderTriggered > 60000)) {
                         task.lastReminderTriggered = Date.now();
                         
-                        // Execute Notification triggers
+                        
                         this.sendNotification(`Task Reminder: ${task.title}`, `Priority: ${task.priority.toUpperCase()}`);
                         this.playAlarmSound();
                         
-                        // Callback to display Snooze/Dismiss UI popup in main page
+                        
                         triggerReminderUIPopupCallback(task);
                     }
                 }

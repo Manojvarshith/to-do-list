@@ -1,20 +1,14 @@
-/**
- * TaskFlow Animation Controller Module
- * Handles resetting and replaying staggered transitions, numeric counters, SVG rings, and canvas animations.
- */
+
 
 export class AnimationController {
     constructor(options = {}) {
-        this.options = options; // Callbacks: onResetChart, onResetHeatmap
+        this.options = options; 
         this.observer = null;
         this.observedContainers = new Set();
         this.setupScrollObserver();
     }
 
-    /**
-     * Resets counters to 0 and deletes their tracking attributes,
-     * so they count up from 0 during renderAll.
-     */
+    
     resetCounters() {
         const counters = [
             { id: 'score-value', attr: 'data-score' },
@@ -30,29 +24,24 @@ export class AnimationController {
             if (el) {
                 el.removeAttribute(c.attr);
                 el.removeAttribute('data-value');
-                // Temporarily set to '0' so the start value is 0
+                
                 el.textContent = '0';
             }
         });
     }
 
-    /**
-     * Resets the stroke-dashoffset of the SVG Productivity Score ring
-     * so it transitions smoothly from empty to full.
-     */
+    
     resetScoreRing() {
         const ring = document.getElementById('score-ring');
         if (ring) {
             ring.style.transition = 'none';
             ring.style.strokeDashoffset = '263.8';
-            void ring.offsetWidth; // Force layout recalculation / reflow
+            void ring.offsetWidth; 
             ring.style.transition = 'stroke-dashoffset 1.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
         }
     }
 
-    /**
-     * Manually triggers stagger animation on all animateable children in the active pane.
-     */
+    
     replayStaggerAnimations(activePane) {
         if (!activePane || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
@@ -62,15 +51,13 @@ export class AnimationController {
 
         cards.forEach((card, index) => {
             card.classList.remove('stagger-in');
-            void card.offsetWidth; // Force reflow
+            void card.offsetWidth; 
             card.style.animationDelay = `${index * 0.05}s`;
             card.classList.add('stagger-in');
         });
     }
 
-    /**
-     * Sets up IntersectionObserver to trigger stagger entrance animations when elements enter viewport.
-     */
+    
     setupScrollObserver() {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
@@ -79,7 +66,7 @@ export class AnimationController {
                 if (entry.isIntersecting) {
                     const card = entry.target;
                     if (!card.classList.contains('stagger-in')) {
-                        // Determine position in viewport relative to siblings to calculate dynamic delay
+                        
                         const parent = card.parentElement;
                         let index = 0;
                         if (parent) {
@@ -90,7 +77,7 @@ export class AnimationController {
                         card.classList.add('stagger-in');
                     }
                 } else {
-                    // Reset stagger-in class when it scrolls out, so it can re-animate when scrolled back in
+                    
                     entry.target.classList.remove('stagger-in');
                 }
             });
@@ -100,9 +87,7 @@ export class AnimationController {
         });
     }
 
-    /**
-     * Starts observing elements inside a container for scroll-triggered animations.
-     */
+    
     observeElements(container) {
         if (!this.observer || !container) return;
         
@@ -116,9 +101,7 @@ export class AnimationController {
         this.observedContainers.add(container);
     }
 
-    /**
-     * Stop observing elements in a container.
-     */
+    
     unobserveElements(container) {
         if (!this.observer || !container) return;
         
@@ -132,45 +115,39 @@ export class AnimationController {
         this.observedContainers.delete(container);
     }
 
-    /**
-     * Resets observations and sets them up fresh for all cards in the current viewport.
-     */
+    
     refreshScrollAnimations(container) {
         if (!this.observer) return;
         
-        // Remove previous observations in this container
+        
         this.unobserveElements(container);
         
-        // Let layout settle, then observe again
+        
         setTimeout(() => {
             this.observeElements(container);
         }, 50);
     }
 
-    /**
-     * Adds entrance classes to a modal popup wrapper to play premium pop effect.
-     */
+    
     animateModal(modal) {
         if (!modal || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
         const modalContent = modal.querySelector('.modal-content');
         if (modalContent) {
             modalContent.classList.remove('modal-animate-in');
-            void modalContent.offsetWidth; // Force reflow
+            void modalContent.offsetWidth; 
             modalContent.classList.add('modal-animate-in');
         }
     }
 
-    /**
-     * Triggers when tab or dashboard view switches.
-     */
+    
     onNavigation(targetTab, activePane) {
-        // 1. Reset metrics/counters
+        
         if (targetTab === 'dashboard') {
             this.resetCounters();
             this.resetScoreRing();
         }
 
-        // 2. Trigger chart / heatmap resets if callbacks provided
+        
         if (targetTab === 'dashboard') {
             if (this.options.onResetChart) {
                 this.options.onResetChart();
@@ -184,10 +161,10 @@ export class AnimationController {
             }
         }
 
-        // 3. Replay entrance transition animations
+        
         this.replayStaggerAnimations(activePane);
 
-        // 4. Refresh Scroll observer for viewport elements
+        
         this.refreshScrollAnimations(activePane);
     }
 }

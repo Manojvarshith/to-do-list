@@ -4,21 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TaskFlow | Advanced SaaS Productivity Platform</title>
-    <!-- SEO Meta -->
+    
     <meta name="description" content="A comprehensive productivity suite combining Todoist, Habitica, Pomodoro focus mode, and interactive calendar scheduling offline with gamified levels and streaks.">
-    <!-- Google Fonts - Outfit -->
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome Icon CDN -->
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js CDN for Analytics -->
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Main Style Sheet -->
+    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Splash Screen Entrance -->
+    
     <div id="splash-screen" class="splash-screen">
         <div class="splash-logo">
             <i class="fa-solid fa-square-check"></i>
@@ -26,19 +26,19 @@
         </div>
     </div>
 
-    <!-- Floating Background Particles -->
+    
     <div class="particles-bg">
         <div class="particle p1"></div>
         <div class="particle p2"></div>
         <div class="particle p3"></div>
     </div>
 
-    <!-- Mouse Following Light Glow -->
+    
     <div id="mouse-glow" class="mouse-glow"></div>
 
-    <!-- MAIN APP STRUCTURE -->
+    
     <div class="app-layout">
-        <!-- SIDEBAR NAVIGATION -->
+        
         <aside class="app-sidebar" id="app-sidebar">
             <div class="sidebar-brand">
                 <div class="brand-icon">
@@ -48,7 +48,7 @@
                 <button class="mobile-close-sidebar" id="mobile-sidebar-close" aria-label="Close sidebar">&times;</button>
             </div>
             
-            <!-- Gamified Profile Panel -->
+            
             <div class="sidebar-profile">
                 <div class="profile-avatar">
                     <i class="fa-solid fa-user-astronaut"></i>
@@ -63,7 +63,7 @@
                 </div>
             </div>
 
-            <!-- Nav Items -->
+            
             <nav class="sidebar-nav" role="tablist">
                 <button class="nav-item active" data-tab="dashboard" role="tab" aria-selected="true">
                     <i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span>
@@ -86,14 +86,14 @@
             </nav>
 
             <div class="sidebar-footer">
-                <!-- Theme Toggle -->
+                
                 <button id="theme-toggle" class="sidebar-theme-btn" aria-label="Toggle Theme">
                     <i class="fa-solid fa-moon"></i> <span>Toggle Theme</span>
                 </button>
             </div>
         </aside>
 
-        <!-- MAIN WINDOW VIEWPORT -->
+        
         <div class="main-viewport">
             <header class="viewport-header">
                 <div class="header-left">
@@ -112,9 +112,7 @@
             </header>
 
             <main class="viewport-content">
-                <!-- ==========================================================
-                     TAB 1: PRODUCTIVITY DASHBOARD
-                     ========================================================== -->
+                
                 <div class="tab-pane active" id="tab-dashboard" role="tabpanel">
                     <div class="dashboard-welcome">
                         <div class="welcome-text">
@@ -130,7 +128,7 @@
                         </div>
                     </div>
 
-                    <!-- Metrics Grid Section -->
+                    
                     <div class="metrics-grid">
                         <div class="metric-card score-card">
                             <div class="progress-ring-wrap">
@@ -168,9 +166,9 @@
                         </div>
                     </div>
 
-                    <!-- Visual Analytics Panels -->
+                    
                     <div class="analytics-layout">
-                        <!-- Chart Window -->
+                        
                         <div class="analytics-card chart-card">
                             <div class="card-header">
                                 <h3><i class="fa-solid fa-chart-line"></i> <span id="chart-title-text">Weekly Performance</span></h3>
@@ -184,7 +182,7 @@
                             </div>
                         </div>
 
-                        <!-- Habit Calendar Heatmap -->
+                        
                         <div class="analytics-card heatmap-card">
                             <div class="card-header">
                                 <h3><i class="fa-solid fa-calendar-grid"></i> Habit Streak Map</h3>
@@ -198,37 +196,35 @@
                     </div>
 
                     <div class="dashboard-split-layout">
-                        <!-- Upcoming Reminders Panel -->
+                        
                         <div class="dashboard-card reminders-panel">
                             <h3><i class="fa-solid fa-bell"></i> Upcoming Reminders</h3>
                             <ul class="reminders-list" id="dash-reminders-list">
-                                <!-- Reminders populated dynamically -->
+                                
                             </ul>
                         </div>
                         
-                        <!-- Badges Quickview -->
+                        
                         <div class="dashboard-card badges-panel">
                             <h3><i class="fa-solid fa-award"></i> Showcase Badges</h3>
                             <div class="badges-flex" id="dash-badges-flex">
-                                <!-- Badges populated dynamically -->
+                                
                             </div>
                         </div>
 
-                        <!-- Productivity Reports Summary Panel -->
+                        
                         <div class="dashboard-card reports-panel">
                             <h3><i class="fa-solid fa-file-invoice-paragraph"></i> Productivity Reports</h3>
                             <div class="reports-content" id="dash-reports-summary">
-                                <!-- Populated dynamically -->
+                                
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- ==========================================================
-                     TAB 2: ADVANCED TASKS MANAGER
-                     ========================================================== -->
+                
                 <div class="tab-pane" id="tab-tasks" role="tabpanel">
-                    <!-- Toolbar search, filter, sorting -->
+                    
                     <div class="tasks-toolbar">
                         <div class="toolbar-search">
                             <i class="fa-solid fa-magnifying-glass search-icon"></i>
@@ -273,7 +269,7 @@
                         </div>
                     </div>
 
-                    <!-- Add New Task Trigger Panel -->
+                    
                     <div class="tasks-list-header">
                         <div class="filter-status-tabs" role="tablist">
                             <button class="status-tab active" data-status="all" role="tab" aria-selected="true">All</button>
@@ -285,7 +281,7 @@
                         </button>
                     </div>
 
-                    <!-- Tasks List Grid -->
+                    
                     <div class="tasks-viewport">
                         <div id="tasks-empty-state" class="empty-state hidden">
                             <div class="empty-icon"><i class="fa-regular fa-clipboard"></i></div>
@@ -293,7 +289,7 @@
                             <p>Try refining your search terms or filters above to view tasks.</p>
                         </div>
                         
-                        <!-- Groups -->
+                        
                         <div class="task-group-container" id="tasks-group-overdue">
                             <h3 class="group-title title-overdue"><i class="fa-solid fa-triangle-exclamation"></i> Overdue</h3>
                             <ul class="task-list" id="list-overdue"></ul>
@@ -316,12 +312,10 @@
                     </div>
                 </div>
 
-                <!-- ==========================================================
-                     TAB 3: HABIT TRACKER
-                     ========================================================== -->
+                
                 <div class="tab-pane" id="tab-habits" role="tabpanel">
                     <div class="habits-layout">
-                        <!-- Habit Addition Panel -->
+                        
                         <div class="habits-creation-card">
                             <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Form a New Habit</h3>
                             <form id="habit-form">
@@ -351,7 +345,7 @@
                             </form>
                         </div>
 
-                        <!-- Habits List Board -->
+                        
                         <div class="habits-board">
                             <div class="board-header">
                                 <h3><i class="fa-solid fa-calendar-check"></i> Habit Checklist</h3>
@@ -368,11 +362,11 @@
                                 <table class="habits-table">
                                     <thead>
                                         <tr id="habits-table-headers">
-                                            <!-- Headers loaded dynamically -->
+                                            
                                         </tr>
                                     </thead>
                                     <tbody id="habits-table-body">
-                                        <!-- Habits populated dynamically -->
+                                        
                                     </tbody>
                                 </table>
                             </div>
@@ -380,23 +374,21 @@
                     </div>
                 </div>
 
-                <!-- ==========================================================
-                     TAB 4: INTERACTIVE CALENDAR
-                     ========================================================== -->
+                
                 <div class="tab-pane" id="tab-calendar" role="tabpanel">
                     <div class="calendar-layout-grid">
-                        <!-- Left Panel: Unscheduled Tasks to drag -->
+                        
                         <div class="calendar-sidebar-panel">
                             <h3><i class="fa-solid fa-inbox"></i> Unscheduled Inbox</h3>
                             <p class="sidebar-p-hint">Drag tasks from here onto calendar days to schedule them:</p>
                             <ul id="calendar-unscheduled-list" class="calendar-drag-list">
-                                <!-- Populated dynamically with tasks having no dueDate -->
+                                
                             </ul>
                         </div>
                         
-                        <!-- Right Panel: Calendar Workspace -->
+                        
                         <div class="calendar-workspace">
-                            <!-- Calendar Controls header -->
+                            
                             <div class="calendar-toolbar">
                                 <div class="cal-nav-controls">
                                     <button class="secondary-btn btn-sm" id="cal-btn-prev"><i class="fa-solid fa-chevron-left"></i></button>
@@ -412,22 +404,20 @@
                                 </div>
                             </div>
 
-                            <!-- Calendar Grid Wrapper -->
+                            
                             <div class="calendar-grid-container-card">
                                 <div id="calendar-grid-container" class="calendar-grid">
-                                    <!-- Generated Dynamically -->
+                                    
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- ==========================================================
-                     TAB 5: POMODORO FOCUS MODE
-                     ========================================================== -->
+                
                 <div class="tab-pane" id="tab-focus" role="tabpanel">
                     <div class="focus-dashboard-container">
-                        <!-- Visual Circular Clock -->
+                        
                         <div class="focus-timer-card">
                             <div class="timer-mode-selectors">
                                 <button class="timer-mode-btn active" data-focus-mode="work">Work Session</button>
@@ -462,7 +452,7 @@
                             </div>
                         </div>
 
-                        <!-- Sounds Generator & Options Panel -->
+                        
                         <div class="focus-options-card">
                             <h3><i class="fa-solid fa-music"></i> Ambient Focus Sounds</h3>
                             <p class="section-descr">Synthesized ambient white noise helper (no static mp3s):</p>
@@ -509,9 +499,7 @@
                     </div>
                 </div>
 
-                <!-- ==========================================================
-                     TAB 6: ACHIEVEMENTS & GAMIFICATION
-                     ========================================================== -->
+                
                 <div class="tab-pane" id="tab-gamification" role="tabpanel">
                     <div class="gamification-workspace">
                         <div class="achievements-intro-card">
@@ -526,9 +514,9 @@
                             </div>
                         </div>
 
-                        <!-- Achievements Grid -->
+                        
                         <div class="achievements-gallery" id="achievements-gallery-container">
-                            <!-- Populated Dynamically -->
+                            
                         </div>
                     </div>
                 </div>
@@ -536,9 +524,7 @@
         </div>
     </div>
 
-    <!-- ==========================================================
-         DIALOG MODALS: ADD TASK
-         ========================================================== -->
+    
     <div id="add-task-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="add-modal-title">
         <div class="modal-content">
             <div class="modal-header">
@@ -548,7 +534,7 @@
             
             <form id="add-task-form">
                 <div class="modal-body">
-                    <!-- Title Input -->
+                    
                     <div class="form-group">
                         <label for="add-title">Task Title</label>
                         <div class="input-wrapper">
@@ -560,7 +546,7 @@
                         </div>
                     </div>
 
-                    <!-- Category & Priority Row -->
+                    
                     <div class="modal-form-row">
                         <div class="form-group">
                             <label for="add-category">Category</label>
@@ -590,7 +576,7 @@
                         </div>
                     </div>
 
-                    <!-- Date and Time Row -->
+                    
                     <div class="modal-form-row">
                         <div class="form-group">
                             <label for="add-date">Due Date</label>
@@ -609,7 +595,7 @@
                         </div>
                     </div>
 
-                    <!-- Smart Recurrence Toggle Group -->
+                    
                     <div class="recurrence-toggle-header">
                         <label class="toggle-switch-label">
                             <input type="checkbox" id="add-recurring-toggle">
@@ -618,7 +604,7 @@
                         <span class="toggle-text-label"><i class="fa-solid fa-rotate"></i> Recurring Task</span>
                     </div>
 
-                    <!-- Recurrence settings subform (collapsible) -->
+                    
                     <div id="add-recurrence-options" class="recurrence-subform hidden">
                         <div class="modal-form-row">
                             <div class="form-group">
@@ -658,9 +644,7 @@
         </div>
     </div>
 
-    <!-- ==========================================================
-         DIALOG MODALS: EDIT TASK
-         ========================================================== -->
+    
     <div id="edit-task-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
         <div class="modal-content">
             <div class="modal-header">
@@ -672,7 +656,7 @@
                 <input type="hidden" id="edit-task-id">
                 
                 <div class="modal-body">
-                    <!-- Title -->
+                    
                     <div class="form-group">
                         <label for="edit-title">Task Title</label>
                         <div class="input-wrapper">
@@ -681,7 +665,7 @@
                         </div>
                     </div>
 
-                    <!-- Category / Priority -->
+                    
                     <div class="modal-form-row">
                         <div class="form-group">
                             <label for="edit-category">Category</label>
@@ -711,7 +695,7 @@
                         </div>
                     </div>
 
-                    <!-- Dates -->
+                    
                     <div class="modal-form-row">
                         <div class="form-group">
                             <label for="edit-date">Due Date</label>
@@ -730,7 +714,7 @@
                         </div>
                     </div>
 
-                    <!-- Recurring Switch -->
+                    
                     <div class="recurrence-toggle-header">
                         <label class="toggle-switch-label">
                             <input type="checkbox" id="edit-recurring-toggle">
@@ -778,9 +762,7 @@
         </div>
     </div>
 
-    <!-- ==========================================================
-         DIALOG MODALS: SMART REMINDER TRIGGER ALARM
-         ========================================================== -->
+    
     <div id="alarm-trigger-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="alarm-modal-title">
         <div class="modal-content highlight-alarm">
             <div class="modal-header bg-alarm">
@@ -808,9 +790,7 @@
         </div>
     </div>
 
-    <!-- ==========================================================
-         FULL SCREEN FOCUS MODE OVERLAY
-         ========================================================== -->
+    
     <div class="fullscreen-focus-overlay" id="fullscreen-focus-overlay">
         <button class="exit-fullscreen-btn" id="exit-fullscreen-focus" aria-label="Exit fullscreen Focus Mode">
             <i class="fa-solid fa-compress"></i> Exit Focus
@@ -830,7 +810,7 @@
         </div>
     </div>
 
-    <!-- Main Module Orchestration JS script -->
+    
     <script type="module" src="script.js"></script>
 </body>
 </html>

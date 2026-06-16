@@ -1,7 +1,4 @@
-/**
- * TaskFlow Main Orchestration Script
- * Boots modules, runs viewport tab routing, coordinates metrics calculations and Chart.js analytics.
- */
+
 
 import { loadState, saveTheme } from './storage.js';
 import { GamificationManager, BADGES } from './gamification.js';
@@ -12,15 +9,15 @@ import { HabitManager, getLocalDateStr } from './habits.js';
 import { TaskManager, CATEGORIES } from './tasks.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Initial State
+    
     let appState = loadState();
 
-    // 2. Instantiate Modular Controllers
+    
     const gamificationManager = new GamificationManager(appState, updateGamificationUI);
     
     const taskManager = new TaskManager(
         appState,
-        () => { // State update callback
+        () => { 
             appState.tasks = taskManager.getTasks();
             calendarManager.setTasks(appState.tasks);
             renderAll();
@@ -30,7 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const habitManager = new HabitManager(
         appState,
-        () => { // State update callback
+        () => { 
             appState.habits = habitManager.getHabits();
             renderAll();
         },
@@ -40,15 +37,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const focusManager = new FocusManager(gamificationManager);
     const notificationManager = new NotificationManager();
 
-    // 3. Setup Interactive Calendar with drop handler
+    
     const calendarManager = new CalendarManager(
         appState,
         (dateStr, timeStr) => {
-            // Callback when a day cell is clicked - opens task modal with date pre-filled
+            
             openAddTaskModalWithDate(dateStr, timeStr);
         },
         (taskId, dateStr, timeStr) => {
-            // Callback when a task is dropped onto a day/time slot
+            
             const updateData = { dueDate: dateStr };
             if (timeStr !== undefined) {
                 updateData.dueTime = timeStr || null;
@@ -57,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     );
 
-    // 4. Global DOM Queries
+    
     const navItems = document.querySelectorAll('.nav-item');
     const tabPanes = document.querySelectorAll('.tab-pane');
     const viewportTitle = document.getElementById('viewport-title');
@@ -67,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mobileSidebarClose = document.getElementById('mobile-sidebar-close');
     const themeToggleBtn = document.getElementById('theme-toggle');
 
-    // Apply saved theme on boot
+    
     const isDark = appState.theme === 'dark';
     document.body.classList.toggle('dark-theme', isDark);
     themeToggleBtn.innerHTML = isDark 
@@ -75,31 +72,31 @@ document.addEventListener('DOMContentLoaded', () => {
         : '<i class="fa-solid fa-moon"></i> <span>Toggle Theme</span>';
 
 
-    // Modals DOM
+    
     const addTaskModal = document.getElementById('add-task-modal');
     const addTaskForm = document.getElementById('add-task-form');
     const editTaskModal = document.getElementById('edit-task-modal');
     const editTaskForm = document.getElementById('edit-task-form');
     
-    // Quick Add triggers
+    
     const fabTriggerHeader = document.getElementById('fab-trigger-header');
     const openAddModalBtn = document.getElementById('open-add-modal-btn');
 
-    // Chart.js handle
+    
     let performanceChart = null;
 
-    // Set Date in Header
+    
     const dateOptions = { weekday: 'long', month: 'long', day: 'numeric' };
     headerDate.textContent = new Date().toLocaleDateString('en-US', dateOptions);
 
-    // ==========================================================================
-    // ROUTING / TAB PANES ROUTER
-    // ==========================================================================
+    
+    
+    
     navItems.forEach(item => {
         item.addEventListener('click', () => {
             const targetTab = item.getAttribute('data-tab');
             
-            // Toggle active classes on nav
+            
             navItems.forEach(i => {
                 i.classList.remove('active');
                 i.setAttribute('aria-selected', 'false');
@@ -107,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
             item.classList.add('active');
             item.setAttribute('aria-selected', 'true');
 
-            // Switch sub-pages
+            
             tabPanes.forEach(pane => {
                 pane.classList.remove('active');
                 if (pane.id === `tab-${targetTab}`) {
@@ -116,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // Set Title header
+            
             const pageNames = {
                 dashboard: 'Productivity Dashboard',
                 tasks: 'Task Manager',
@@ -127,10 +124,10 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             viewportTitle.textContent = pageNames[targetTab] || 'TaskFlow';
             
-            // Close mobile sidebar drawer on navigate
+            
             appSidebar.classList.remove('active');
 
-            // Refresh specific components
+            
             if (targetTab === 'calendar') {
                 calendarManager.render();
             } else if (targetTab === 'dashboard') {
@@ -144,11 +141,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Mobile Sidebar Drawer toggling
+    
     sidebarToggleBtn.addEventListener('click', () => appSidebar.classList.add('active'));
     mobileSidebarClose.addEventListener('click', () => appSidebar.classList.remove('active'));
 
-    // Theme Switch toggling
+    
     themeToggleBtn.addEventListener('click', () => {
         const isDarkToggled = document.body.classList.toggle('dark-theme');
         saveTheme(isDarkToggled ? 'dark' : 'light');
@@ -156,11 +153,11 @@ document.addEventListener('DOMContentLoaded', () => {
             ? '<i class="fa-solid fa-sun"></i> <span>Toggle Theme</span>' 
             : '<i class="fa-solid fa-moon"></i> <span>Toggle Theme</span>';
         
-        // Re-draw canvas graphs with appropriate colors
+        
         renderAll();
     });
 
-    // Chart View toggles
+    
     let activeChartView = 'weekly';
     const chartToggleWeekly = document.getElementById('chart-toggle-weekly');
     const chartToggleMonthly = document.getElementById('chart-toggle-monthly');
@@ -183,11 +180,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ==========================================================================
-    // TASK MODALS TRIGGERS & LISTENERS
-    // ==========================================================================
     
-    // Add Modals
+    
+    
+    
+    
     const addRecurringToggle = document.getElementById('add-recurring-toggle');
     const addRecurrenceOptions = document.getElementById('add-recurrence-options');
     
@@ -195,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addRecurrenceOptions.classList.toggle('hidden', !addRecurringToggle.checked);
     });
 
-    // Edit Modals
+    
     const editRecurringToggle = document.getElementById('edit-recurring-toggle');
     const editRecurrenceOptions = document.getElementById('edit-recurrence-options');
     
@@ -203,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
         editRecurrenceOptions.classList.toggle('hidden', !editRecurringToggle.checked);
     });
 
-    // Open/Close dialog triggers
+    
     fabTriggerHeader.addEventListener('click', () => openModal(addTaskModal));
     openAddModalBtn.addEventListener('click', () => openModal(addTaskModal));
     
@@ -214,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function openModal(modal) {
         modal.classList.add('active');
-        // Set date minimums to today
+        
         const todayStr = getLocalDateStr(new Date());
         const dateInput = modal.querySelector('input[type="date"]');
         if (dateInput) dateInput.min = todayStr;
@@ -228,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (recurSub) recurSub.classList.add('hidden');
     }
 
-    // Pre-fill date modal trigger helper
+    
     function openAddTaskModalWithDate(dateString, timeString = '') {
         openModal(addTaskModal);
         document.getElementById('add-date').value = dateString;
@@ -237,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Add Task submit action
+    
     addTaskForm.addEventListener('submit', (e) => {
         e.preventDefault();
         
@@ -266,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
         closeModal(addTaskModal);
     });
 
-    // Open Edit Modal action
+    
     window.openEditModal = function(id) {
         const todo = appState.tasks.find(t => t.id === id);
         if (!todo) return;
@@ -292,7 +289,7 @@ document.addEventListener('DOMContentLoaded', () => {
         openModal(editTaskModal);
     };
 
-    // Save Edit submit action
+    
     editTaskForm.addEventListener('submit', (e) => {
         e.preventDefault();
 
@@ -327,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
         closeModal(editTaskModal);
     });
 
-    // Delete tasks click actions with deletion animation
+    
     window.deleteTask = function(id) {
         const taskItem = document.querySelector(`.task-item[data-id="${id}"]`);
         if (taskItem && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -345,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Toggle complete click actions with completion bounce delay
+    
     window.toggleComplete = function(id) {
         const taskItem = document.querySelector(`.task-item[data-id="${id}"]`);
         if (taskItem && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
@@ -365,15 +362,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Pause/Resume Recurrence click actions
+    
     window.togglePauseRecurrence = function(id) {
         taskManager.togglePauseRecurrence(id);
         renderAll();
     };
 
-    // ==========================================================================
-    // HABITS CREATE SUBMIT
-    // ==========================================================================
+    
+    
+    
     const habitForm = document.getElementById('habit-form');
     habitForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -396,9 +393,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // ==========================================================================
-    // POMODORO TIMER PANEL LISTENERS
-    // ==========================================================================
+    
+    
+    
     const timerTimeDisplay = document.getElementById('timer-time-display');
     const timerModeLabel = document.getElementById('timer-mode-label');
     const timerPlayBtn = document.getElementById('timer-play-btn');
@@ -408,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const timerProgressRing = document.getElementById('timer-progress-ring');
     const timerModeBtns = document.querySelectorAll('.timer-mode-btn');
 
-    // Fullscreen Overlay controls
+    
     const fullscreenOverlay = document.getElementById('fullscreen-focus-overlay');
     const fsTimerTime = document.getElementById('fs-timer-time');
     const fsTimerLabel = document.getElementById('fs-timer-label');
@@ -417,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fsResetBtn = document.getElementById('fs-reset-btn');
     const exitFullscreenBtn = document.getElementById('exit-fullscreen-focus');
 
-    // Timer Mode Selectors
+    
     timerModeBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             timerModeBtns.forEach(b => b.classList.remove('active'));
@@ -427,23 +424,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Play Timer
+    
     function playTimer() {
         focusManager.start(
-            (tickState) => { // Tick Callback
+            (tickState) => { 
                 const minStr = String(tickState.minutes).padStart(2, '0');
                 const secStr = String(tickState.seconds).padStart(2, '0');
                 const timeText = `${minStr}:${secStr}`;
                 
-                // Update text
+                
                 timerTimeDisplay.textContent = timeText;
                 fsTimerTime.textContent = timeText;
                 
-                // SVG circular dial offset (552.9 circumference)
+                
                 const offset = 552.9 - (552.9 * tickState.percentage / 100);
                 timerProgressRing.style.strokeDashoffset = offset;
 
-                // Sync Labels
+                
                 const labels = {
                     work: 'FOCUS ON WORK',
                     short: 'SHORT BREAK',
@@ -452,8 +449,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 timerModeLabel.textContent = labels[tickState.mode];
                 fsTimerLabel.textContent = labels[tickState.mode];
             },
-            (completedMode) => { // Completed Callback
-                // Reset buttons
+            (completedMode) => { 
+                
                 timerPlayBtn.classList.remove('hidden');
                 timerPauseBtn.classList.add('hidden');
                 fsPlayBtn.classList.remove('hidden');
@@ -467,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fsPauseBtn.classList.remove('hidden');
     }
 
-    // Pause Timer
+    
     function pauseTimer() {
         focusManager.stop();
         timerPlayBtn.classList.remove('hidden');
@@ -476,7 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fsPauseBtn.classList.add('hidden');
     }
 
-    // Reset Timer
+    
     function resetTimer() {
         focusManager.reset();
         timerPlayBtn.classList.remove('hidden');
@@ -493,7 +490,7 @@ document.addEventListener('DOMContentLoaded', () => {
     timerResetBtn.addEventListener('click', resetTimer);
     fsResetBtn.addEventListener('click', resetTimer);
 
-    // Fullscreen Overlay triggers
+    
     timerFullscreenBtn.addEventListener('click', () => {
         fullscreenOverlay.classList.add('active');
     });
@@ -501,7 +498,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fullscreenOverlay.classList.remove('active');
     });
 
-    // Sound Machine Controls
+    
     const soundSelectBtns = document.querySelectorAll('.sound-select-btn');
     const volumeSlider = document.getElementById('ambient-volume-slider');
 
@@ -518,7 +515,7 @@ document.addEventListener('DOMContentLoaded', () => {
         focusManager.setAmbientVolume(parseFloat(e.target.value));
     });
 
-    // Duration Form Applies
+    
     document.getElementById('apply-durations-btn').addEventListener('click', () => {
         const w = document.getElementById('dur-work').value;
         const s = document.getElementById('dur-short').value;
@@ -528,9 +525,9 @@ document.addEventListener('DOMContentLoaded', () => {
         alert('Timer lengths customized!');
     });
 
-    // ==========================================================================
-    // ALARM WINDOW POPUPS
-    // ==========================================================================
+    
+    
+    
     const alarmModal = document.getElementById('alarm-trigger-modal');
     const alarmTaskTitle = document.getElementById('alarm-task-title');
     const alarmTaskTime = document.getElementById('alarm-task-time');
@@ -564,15 +561,15 @@ document.addEventListener('DOMContentLoaded', () => {
         alert(`Task reminder snoozed for ${minutes} minutes!`);
     });
 
-    // Start Alarm tick loop
+    
     notificationManager.startReminderCheckLoop(
         () => taskManager.getTasks(),
         (triggeredTask) => triggerReminderPopup(triggeredTask)
     );
 
-    // ==========================================================================
-    // CALENDAR TOOLBAR NAVIGATION BINDINGS
-    // ==========================================================================
+    
+    
+    
     document.getElementById('cal-btn-prev').addEventListener('click', () => calendarManager.prev());
     document.getElementById('cal-btn-next').addEventListener('click', () => calendarManager.next());
     document.getElementById('cal-btn-today').addEventListener('click', () => calendarManager.today());
@@ -585,9 +582,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ==========================================================================
-    // TASK SEARCH, CATEGORY FILTER, PRIORITY FILTER & SORT LISTENERS
-    // ==========================================================================
+    
+    
+    
     const taskSearch = document.getElementById('task-search');
     const filterCategory = document.getElementById('filter-category');
     const filterPriority = document.getElementById('filter-priority');
@@ -614,25 +611,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ==========================================================================
-    // SCORE & STATS GENERATORS
-    // ==========================================================================
+    
+    
+    
     function calculateProductivityScore() {
         const total = appState.tasks.length;
         const completed = appState.tasks.filter(t => t.completed).length;
         const overdue = countOverdueTasks();
         
-        let score = 50; // Base baseline
+        let score = 50; 
 
         if (total > 0) {
-            score += (completed / total) * 35; // Completing ratio is worth 35 points
+            score += (completed / total) * 35; 
         }
         
-        // Streak bonuses (+2 points per streak day)
+        
         const maxStreak = Math.max(0, ...appState.habits.map(h => h.streak));
         score += maxStreak * 2;
         
-        // Completed habits checked today
+        
         const todayStr = getLocalDateStr(new Date());
         let completedHabitsToday = 0;
         appState.habits.forEach(h => {
@@ -640,27 +637,27 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         score += completedHabitsToday * 3;
 
-        // Deductions for overdue tasks
+        
         score -= overdue * 8;
 
-        // Bound between 0 and 100
+        
         const roundedScore = Math.max(0, Math.min(100, Math.round(score)));
         
         const scoreValText = document.getElementById('score-value');
         const prevScore = scoreValText ? (parseInt(scoreValText.getAttribute('data-score')) || 0) : 0;
 
-        // Update circular ring offset (263.8 circumference)
+        
         const scoreRing = document.getElementById('score-ring');
         if (scoreRing) {
             const offset = 263.8 - (263.8 * roundedScore / 100);
             scoreRing.style.strokeDashoffset = offset;
         }
 
-        // Pulse effect if score increases
+        
         const ringWrap = document.querySelector('.progress-ring-wrap');
         if (ringWrap && roundedScore > prevScore) {
             ringWrap.classList.remove('pulse-effect');
-            void ringWrap.offsetWidth; // Force layout recalculation
+            void ringWrap.offsetWidth; 
             ringWrap.classList.add('pulse-effect');
         }
 
@@ -669,7 +666,7 @@ document.addEventListener('DOMContentLoaded', () => {
             scoreValText.setAttribute('data-score', roundedScore);
         }
         
-        // Check perfectionist badge
+        
         if (roundedScore >= 95) {
             gamificationManager.checkAndUnlockBadge('score_95');
         }
@@ -682,39 +679,39 @@ document.addEventListener('DOMContentLoaded', () => {
         return appState.tasks.filter(t => !t.completed && t.dueDate && t.dueDate < todayStr).length;
     }
 
-    // ==========================================================================
-    // CORE DRAW RENDERS
-    // ==========================================================================
+    
+    
+    
     function renderAll() {
         const isDarkTheme = document.body.classList.contains('dark-theme');
         
-        // 1. Process tasks categories
+        
         renderTasksList();
         
-        // 2. Render habits table
+        
         renderHabitsBoard();
 
-        // 3. Render Canvas heatmap activity calendar
+        
         const shouldAnimateHeatmap = window.shouldAnimateHeatmapOnce || false;
         habitManager.drawHeatmap('habit-heatmap', isDarkTheme, shouldAnimateHeatmap);
         window.shouldAnimateHeatmapOnce = false;
 
-        // 4. Update Dashboard metrics
+        
         calculateProductivityScore();
         updateDashboardCards();
         updateProductivityReports();
 
-        // 5. Update Profile Panel (sidebar)
+        
         updateProfileXPPanel();
 
-        // 6. Draw Dashboard charts
+        
         renderPerformanceChart();
 
-        // 7. Render Calendar Inbox Sidebar (unscheduled tasks)
+        
         renderCalendarInbox();
     }
 
-    // Update Profile box on sidebar
+    
     function updateGamificationUI() {
         updateProfileXPPanel();
         updateDashboardCards();
@@ -744,7 +741,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return 'Productivity Titan';
     }
 
-    // Animated numeric counter helper
+    
     function animateCounter(elementId, startValue, endValue, duration = 1000) {
         const el = document.getElementById(elementId);
         if (!el) return;
@@ -778,7 +775,7 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(animation);
     }
 
-    // Animated streak days counter helper
+    
     function animateStreakCounter(elementId, startValue, endValue, duration = 1000) {
         const el = document.getElementById(elementId);
         if (!el) return;
@@ -812,7 +809,7 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(animation);
     }
 
-    // Update stats counters on dashboard page
+    
     function updateDashboardCards() {
         const total = appState.tasks.length;
         const completed = appState.tasks.filter(t => t.completed).length;
@@ -824,11 +821,11 @@ document.addEventListener('DOMContentLoaded', () => {
         animateCounter('dash-completed', 0, completed);
         animateCounter('dash-overdue', 0, overdue);
 
-        // Active Streak Count
+        
         const maxStreak = Math.max(0, ...appState.habits.map(h => h.streak));
         animateStreakCounter('dash-streak-count', 0, maxStreak);
 
-        // Dynamic reminders panel
+        
         const remindersList = document.getElementById('dash-reminders-list');
         if (remindersList) {
             const upcomingTasks = appState.tasks
@@ -841,7 +838,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (upcomingTasks.length === 0) {
                 remindersList.innerHTML = '<li class="reminder-item slide-in-notification"><span class="rem-title">No upcoming alerts scheduled</span></li>';
             } else {
-                // Remove deleted/obsolete reminders with animation
+                
                 const childrenArray = Array.from(remindersList.children);
                 childrenArray.forEach(child => {
                     const id = child.getAttribute('data-id');
@@ -854,7 +851,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
-                // Add or update elements
+                
                 upcomingTasks.forEach((t, index) => {
                     let existingItem = remindersList.querySelector(`li[data-id="${t.id}"]`);
                     if (!existingItem) {
@@ -874,7 +871,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             remindersList.appendChild(li);
                         }
                     } else {
-                        // Update contents if item already exists
+                        
                         existingItem.innerHTML = `
                             <div>
                                 <span class="rem-title">${escapeHTML(t.title)}</span>
@@ -887,7 +884,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Showcase Badges Dashboard Panel
+        
         const showcaseFlex = document.getElementById('dash-badges-flex');
         if (showcaseFlex) {
             showcaseFlex.innerHTML = BADGES.map(badge => {
@@ -901,9 +898,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // ==========================================================================
-    // RENDER TASK VIEWS (TAB 2)
-    // ==========================================================================
+    
+    
+    
     function renderTasksList() {
         const query = taskSearch.value.toLowerCase().trim();
         const catFilter = filterCategory.value;
@@ -912,9 +909,9 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const todayStr = getLocalDateStr(new Date());
 
-        // 1. Filter Tasks
+        
         let filtered = appState.tasks.filter(task => {
-            // Search Query
+            
             const matchesQuery = !query || 
                 task.title.toLowerCase().includes(query) ||
                 task.priority.toLowerCase().includes(query) ||
@@ -922,20 +919,20 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (!matchesQuery) return false;
 
-            // Category Filter
+            
             if (catFilter !== 'all' && task.category !== catFilter) return false;
 
-            // Priority Filter
+            
             if (priorityFilter !== 'all' && task.priority !== priorityFilter) return false;
 
-            // Status Tabs
+            
             if (activeStatusTab === 'pending' && task.completed) return false;
             if (activeStatusTab === 'completed' && !task.completed) return false;
 
             return true;
         });
 
-        // 2. Sort Tasks
+        
         filtered.sort((a, b) => {
             switch (sortBy) {
                 case 'created-asc':
@@ -959,7 +956,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // 3. Render Empty state
+        
         const emptyState = document.getElementById('tasks-empty-state');
         if (filtered.length === 0) {
             emptyState.classList.remove('hidden');
@@ -968,7 +965,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         emptyState.classList.add('hidden');
 
-        // 4. Split and render into group segments
+        
         const overdueGroup = filtered.filter(t => !t.completed && t.dueDate && t.dueDate < todayStr);
         const todayGroup = filtered.filter(t => !t.completed && t.dueDate === todayStr);
         const upcomingGroup = filtered.filter(t => !t.completed && t.dueDate && t.dueDate > todayStr);
@@ -997,7 +994,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const catInfo = CATEGORIES[task.category] || { label: 'Personal', icon: 'fa-user' };
             const priorityBadge = task.priority.charAt(0).toUpperCase() + task.priority.slice(1);
             
-            // Recurrence status indicators
+            
             let recurHTML = '';
             if (task.isRecurring && task.recurrence) {
                 const pausedClass = task.recurrence.isPaused ? 'paused' : '';
@@ -1009,7 +1006,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             }
 
-            // Date limits
+            
             let dateHTML = '';
             if (task.dueDate) {
                 const isOverdue = !task.completed && task.dueDate < todayStr;
@@ -1020,7 +1017,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             }
 
-            // Pause action button
+            
             let pauseBtnHTML = '';
             if (task.isRecurring) {
                 const isPaused = task.recurrence?.isPaused;
@@ -1074,9 +1071,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return weights[priority] || 2;
     }
 
-    // ==========================================================================
-    // RENDER HABIT BOARD (TAB 3)
-    // ==========================================================================
+    
+    
+    
     function renderHabitsBoard() {
         const habitsEmptyState = document.getElementById('habits-empty-state');
         const habitsTableWrap = document.getElementById('habits-table-wrap');
@@ -1090,7 +1087,7 @@ document.addEventListener('DOMContentLoaded', () => {
         habitsEmptyState.classList.add('hidden');
         habitsTableWrap.classList.remove('hidden');
 
-        // 1. Draw Headers (Titles, then last 7 days from yesterday backwards)
+        
         const headersTr = document.getElementById('habits-table-headers');
         
         const weekdayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -1116,7 +1113,7 @@ document.addEventListener('DOMContentLoaded', () => {
         headersHTML += '<th></th>';
         headersTr.innerHTML = headersHTML;
 
-        // 2. Render habit rows
+        
         const tbody = document.getElementById('habits-table-body');
         tbody.innerHTML = appState.habits.map(habit => {
             const catInfo = CATEGORIES[habit.category] || { label: 'Health', icon: 'fa-heart-pulse' };
@@ -1163,9 +1160,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
     }
 
-    // ==========================================================================
-    // RENDER ACHIEVEMENTS SHOWROOM (TAB 6)
-    // ==========================================================================
+    
+    
+    
     function renderAchievementsTab() {
         const gallery = document.getElementById('achievements-gallery-container');
         if (!gallery) return;
@@ -1188,9 +1185,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }).join('');
     }
 
-    // ==========================================================================
-    // RENDERS CHART.JS ANALTICS GRAPHS (WEEKLY & MONTHLY PERFORMANCE REPORTS)
-    // ==========================================================================
+    
+    
+    
     function renderPerformanceChart() {
         const canvas = document.getElementById('analytics-chart');
         if (!canvas) return;
@@ -1204,11 +1201,11 @@ document.addEventListener('DOMContentLoaded', () => {
             d.setDate(d.getDate() - i);
             const dateStr = getLocalDateStr(d);
             
-            // Format labels like "Jun 16"
+            
             if (activeChartView === 'weekly') {
                 labels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
             } else {
-                // For monthly, label every 5 days or boundaries to keep chart clean
+                
                 if (i % 5 === 0 || i === daysToRender - 1 || i === 0) {
                     labels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
                 } else {
@@ -1216,7 +1213,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             
-            // Count completed tasks with due dates matching dateStr
+            
             const completedCount = appState.tasks.filter(t => t.completed && t.dueDate === dateStr).length;
             data.push(completedCount);
         }
@@ -1227,12 +1224,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const ctx = canvas.getContext('2d');
         
-        // Gradient fill below curve line
+        
         const gradient = ctx.createLinearGradient(0, 0, 0, 160);
         gradient.addColorStop(0, 'rgba(99, 102, 241, 0.35)');
         gradient.addColorStop(1, 'rgba(99, 102, 241, 0.00)');
 
-        // Reuse existing chart instance for beautiful smooth transition morphing
+        
         if (performanceChart) {
             performanceChart.data.labels = labels;
             performanceChart.data.datasets[0].data = data;
@@ -1270,7 +1267,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 plugins: {
                     legend: { display: false }
                 },
-                // Progressive line drawing animation settings
+                
                 animation: {
                     duration: 1200,
                     easing: 'easeOutQuart'
@@ -1305,7 +1302,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Renders the Calendar's Inbox sidebar for unscheduled tasks
+    
     function renderCalendarInbox() {
         const inboxList = document.getElementById('calendar-unscheduled-list');
         if (!inboxList) return;
@@ -1327,7 +1324,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         }).join('');
 
-        // Add dragstart event listeners
+        
         inboxList.querySelectorAll('.calendar-drag-item').forEach(item => {
             item.addEventListener('dragstart', (e) => {
                 const taskId = item.getAttribute('data-task-id');
@@ -1337,7 +1334,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Dynamic reports compiler for Weekly & Monthly summaries
+    
     function updateProductivityReports() {
         const reportsSummary = document.getElementById('dash-reports-summary');
         if (!reportsSummary) return;
@@ -1376,7 +1373,7 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     }
 
-    // Helper: Escapes HTML tags to prevent injections (XSS security)
+    
     function escapeHTML(str) {
         return str
             .replace(/&/g, '&amp;')
@@ -1386,7 +1383,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .replace(/'/g, '&#039;');
     }
 
-    // Trigger staggered entrance animation for cards/elements in a given pane
+    
     function triggerTabAnimations(activePane) {
         if (!activePane || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
         
@@ -1394,13 +1391,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         cards.forEach((card, index) => {
             card.classList.remove('stagger-in');
-            void card.offsetWidth; // Force layout recalculation
+            void card.offsetWidth; 
             card.style.animationDelay = `${index * 0.06}s`;
             card.classList.add('stagger-in');
         });
     }
 
-    // Global Mouse spotlight glow radial position update
+    
     const mouseGlow = document.getElementById('mouse-glow');
     if (mouseGlow) {
         document.addEventListener('mousemove', (e) => {
@@ -1409,11 +1406,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Event Delegation for 3D card tilt & Magnetic cursor effect on buttons
+    
     document.addEventListener('mousemove', (e) => {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-        // 1. 3D Card Tilt on Hover
+        
         const card = e.target.closest('.metric-card, .dashboard-card, .analytics-card, .achievement-card');
         if (card) {
             const rect = card.getBoundingClientRect();
@@ -1423,14 +1420,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const centerX = rect.width / 2;
             const centerY = rect.height / 2;
             
-            const rotateX = ((y - centerY) / centerY) * 10; // Max 10 degrees tilt
+            const rotateX = ((y - centerY) / centerY) * 10; 
             const rotateY = -((x - centerX) / centerX) * 10;
             
             card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px) scale(1.008)`;
             card.style.transition = 'transform 0.08s ease-out';
         }
         
-        // 2. Magnetic cursor effect for actions buttons
+        
         const btn = e.target.closest('.primary-btn, .secondary-btn, .sidebar-theme-btn, .timer-mode-btn, .cal-view-btn, .timer-control-btn');
         if (btn) {
             const rect = btn.getBoundingClientRect();
@@ -1440,7 +1437,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const deltaX = e.clientX - centerX;
             const deltaY = e.clientY - centerY;
             
-            const strength = 0.3; // Magnet strength
+            const strength = 0.3; 
             const mx = deltaX * strength;
             const my = deltaY * strength;
             
@@ -1449,7 +1446,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Reset transformations when mouse leaves
+    
     document.addEventListener('mouseout', (e) => {
         const card = e.target.closest('.metric-card, .dashboard-card, .analytics-card, .achievement-card');
         if (card && (!e.relatedTarget || !card.contains(e.relatedTarget))) {
@@ -1464,20 +1461,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Page Entrance splash screen fade out and trigger animations
+    
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
         if (splash) {
             splash.classList.add('fade-out');
             
-            // Trigger animation for heatmap
+            
             window.shouldAnimateHeatmapOnce = true;
             
-            // Execute renders so that charts draw and counters count up visually
+            
             renderAll();
             renderAchievementsTab();
             
-            // Stagger-in elements on load
+            
             triggerTabAnimations(document.querySelector('.tab-pane.active'));
         }
     }, 1000);

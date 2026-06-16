@@ -1,34 +1,31 @@
-/**
- * TaskFlow Focus Module
- * Controls the Pomodoro Focus timer and synthesizes custom ambient noise focus tracks.
- */
+
 
 export class FocusManager {
     constructor(gamificationManager) {
         this.gamificationManager = gamificationManager;
         
-        // Timer settings
+        
         this.durations = {
             work: 25,
             short: 5,
             long: 15
         };
         
-        this.currentMode = 'work'; // 'work', 'short', 'long'
-        this.timeLeft = this.durations.work * 60; // in seconds
+        this.currentMode = 'work'; 
+        this.timeLeft = this.durations.work * 60; 
         this.timerInterval = null;
         this.isRunning = false;
         
-        // callbacks
+        
         this.onTickCallback = null;
         this.onCompleteCallback = null;
 
-        // Ambient Audio Context
+        
         this.audioContext = null;
         this.noiseSource = null;
         this.noiseGain = null;
         this.lfoNode = null;
-        this.activeNoiseType = 'none'; // 'none', 'white', 'waves', 'rain'
+        this.activeNoiseType = 'none'; 
     }
 
     setMode(mode) {
@@ -99,7 +96,7 @@ export class FocusManager {
         this.playCompletionAlarm();
 
         if (this.currentMode === 'work') {
-            // Reward focus XP
+            
             this.gamificationManager.addXp(50, 'Completed Pomodoro Work Session!');
             this.gamificationManager.checkAndUnlockBadge('pomodoro_1');
         }
@@ -114,7 +111,7 @@ export class FocusManager {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             const now = ctx.currentTime;
             
-            // Double pleasant chime
+            
             [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
@@ -137,9 +134,9 @@ export class FocusManager {
         }
     }
 
-    // ==========================================================================
-    // AUDIO SYNTH SOUND MACHINE (NO EXTERNAL AUDIO FILES)
-    // ==========================================================================
+    
+    
+    
     startAmbientNoise(type) {
         this.stopAmbientNoise();
         if (type === 'none') return;
@@ -148,14 +145,14 @@ export class FocusManager {
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             this.audioContext = new AudioContext();
             this.noiseGain = this.audioContext.createGain();
-            this.noiseGain.gain.value = 0.08; // Set comfortable volume floor
+            this.noiseGain.gain.value = 0.08; 
 
             const sampleRate = this.audioContext.sampleRate;
             const bufferSize = 2 * sampleRate;
             const noiseBuffer = this.audioContext.createBuffer(1, bufferSize, sampleRate);
             const output = noiseBuffer.getChannelData(0);
             
-            // Generate white noise raw random values
+            
             for (let i = 0; i < bufferSize; i++) {
                 output[i] = Math.random() * 2 - 1;
             }
@@ -167,7 +164,7 @@ export class FocusManager {
             const filter = this.audioContext.createBiquadFilter();
 
             if (type === 'white') {
-                // Low-pass filtered slightly to make it smoother
+                
                 filter.type = 'lowpass';
                 filter.frequency.value = 1500;
                 
@@ -175,7 +172,7 @@ export class FocusManager {
                 filter.connect(this.noiseGain);
             } 
             else if (type === 'waves') {
-                // Ocean Waves: Deep low-pass filter modulated by an LFO to swell up & down
+                
                 filter.type = 'lowpass';
                 filter.frequency.value = 400;
                 filter.Q.value = 1.0;
@@ -183,8 +180,8 @@ export class FocusManager {
                 this.lfoNode = this.audioContext.createOscillator();
                 const lfoGain = this.audioContext.createGain();
                 
-                this.lfoNode.frequency.value = 0.08; // 12 seconds per wave swell cycles
-                lfoGain.gain.value = 250; // Oscillate cutoff between 150Hz and 650Hz
+                this.lfoNode.frequency.value = 0.08; 
+                lfoGain.gain.value = 250; 
 
                 this.lfoNode.connect(lfoGain);
                 lfoGain.connect(filter.frequency);
@@ -194,12 +191,12 @@ export class FocusManager {
                 this.lfoNode.start();
             } 
             else if (type === 'rain') {
-                // Rain sound: White noise through bandpass with crackling high-pass transients
+                
                 filter.type = 'bandpass';
                 filter.frequency.value = 800;
                 filter.Q.value = 0.6;
 
-                // Build subtle wind modulation
+                
                 this.lfoNode = this.audioContext.createOscillator();
                 const lfoGain = this.audioContext.createGain();
                 this.lfoNode.frequency.value = 0.15;
