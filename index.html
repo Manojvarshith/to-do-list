@@ -3,244 +3,816 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskFlow | Modern Task Management App</title>
-    <!-- Meta description for SEO -->
-    <meta name="description" content="Manage your tasks efficiently with TaskFlow. Features dark mode, category priorities, search, filtering, and stats dashboard with offline local storage.">
+    <title>TaskFlow | Advanced SaaS Productivity Platform</title>
+    <!-- SEO Meta -->
+    <meta name="description" content="A comprehensive productivity suite combining Todoist, Habitica, Pomodoro focus mode, and interactive calendar scheduling offline with gamified levels and streaks.">
     <!-- Google Fonts - Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- FontAwesome Icon CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Main Style Sheet -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
-        <!-- HEADER SECTION -->
-        <header class="app-header">
-            <div class="header-logo">
-                <div class="logo-icon">
+    <!-- MAIN APP STRUCTURE -->
+    <div class="app-layout">
+        <!-- SIDEBAR NAVIGATION -->
+        <aside class="app-sidebar" id="app-sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon">
                     <i class="fa-solid fa-square-check"></i>
                 </div>
-                <div>
-                    <h1>TaskFlow</h1>
-                    <p class="subtitle">Stay organized, stay productive</p>
-                </div>
+                <h2>TaskFlow</h2>
+                <button class="mobile-close-sidebar" id="mobile-sidebar-close" aria-label="Close sidebar">&times;</button>
             </div>
             
-            <!-- Theme Toggle -->
-            <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme">
-                <i class="fa-solid fa-moon"></i>
-            </button>
-        </header>
+            <!-- Gamified Profile Panel -->
+            <div class="sidebar-profile">
+                <div class="profile-avatar">
+                    <i class="fa-solid fa-user-astronaut"></i>
+                </div>
+                <div class="profile-details">
+                    <h3 class="username">Productive User</h3>
+                    <div class="level-badge">Level <span id="user-level">1</span></div>
+                </div>
+                <div class="xp-bar-container">
+                    <div class="xp-bar-fill" id="user-xp-fill" style="width: 0%"></div>
+                    <span class="xp-text" id="user-xp-text">0 / 150 XP</span>
+                </div>
+            </div>
 
-        <main class="app-body">
-            <!-- DASHBOARD / STATISTICS SECTION -->
-            <section class="dashboard-section" aria-label="Statistics Dashboard">
-                <div class="stats-grid">
-                    <div class="stat-card total-tasks">
-                        <div class="stat-icon">
-                            <i class="fa-solid fa-list-check"></i>
+            <!-- Nav Items -->
+            <nav class="sidebar-nav" role="tablist">
+                <button class="nav-item active" data-tab="dashboard" role="tab" aria-selected="true">
+                    <i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span>
+                </button>
+                <button class="nav-item" data-tab="tasks" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-list-check"></i> <span>Tasks</span>
+                </button>
+                <button class="nav-item" data-tab="habits" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-calendar-check"></i> <span>Habits</span>
+                </button>
+                <button class="nav-item" data-tab="calendar" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-calendar-days"></i> <span>Calendar</span>
+                </button>
+                <button class="nav-item" data-tab="focus" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-clock"></i> <span>Focus Mode</span>
+                </button>
+                <button class="nav-item" data-tab="gamification" role="tab" aria-selected="false">
+                    <i class="fa-solid fa-award"></i> <span>Achievements</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <!-- Theme Toggle -->
+                <button id="theme-toggle" class="sidebar-theme-btn" aria-label="Toggle Theme">
+                    <i class="fa-solid fa-moon"></i> <span>Toggle Theme</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN WINDOW VIEWPORT -->
+        <div class="main-viewport">
+            <header class="viewport-header">
+                <div class="header-left">
+                    <button class="sidebar-toggle" id="sidebar-toggle-btn" aria-label="Open navigation sidebar">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h1 id="viewport-title">Dashboard</h1>
+                </div>
+                
+                <div class="header-right">
+                    <div class="date-display" id="header-date">Tuesday, June 16</div>
+                    <button id="fab-trigger-header" class="add-shortcut-btn" aria-label="Quick Add Task">
+                        <i class="fa-solid fa-plus"></i> Quick Task
+                    </button>
+                </div>
+            </header>
+
+            <main class="viewport-content">
+                <!-- ==========================================================
+                     TAB 1: PRODUCTIVITY DASHBOARD
+                     ========================================================== -->
+                <div class="tab-pane active" id="tab-dashboard" role="tabpanel">
+                    <div class="dashboard-welcome">
+                        <div class="welcome-text">
+                            <h2>Welcome back, Champion!</h2>
+                            <p>Here is your productivity roadmap for today. You are leveling up fast!</p>
                         </div>
-                        <div class="stat-info">
-                            <span class="stat-value" id="stat-total">0</span>
-                            <span class="stat-label">Total Tasks</span>
+                        <div class="welcome-stats">
+                            <span class="welcome-streak-flame"><i class="fa-solid fa-fire animate-pulse"></i></span>
+                            <div class="welcome-streak-info">
+                                <h4 id="dash-streak-count">0 Days</h4>
+                                <p>Active Habit Streak</p>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="stat-card pending-tasks">
-                        <div class="stat-icon">
-                            <i class="fa-solid fa-clock"></i>
+
+                    <!-- Metrics Grid Section -->
+                    <div class="metrics-grid">
+                        <div class="metric-card score-card">
+                            <div class="progress-ring-wrap">
+                                <svg width="100" height="100" viewBox="0 0 100 100">
+                                    <circle class="ring-bg" cx="50" cy="50" r="42" stroke-width="8" fill="transparent"/>
+                                    <circle class="ring-fill" id="score-ring" cx="50" cy="50" r="42" stroke-width="8" fill="transparent" stroke-dasharray="263.8" stroke-dashoffset="263.8"/>
+                                </svg>
+                                <span class="ring-val" id="score-value">50</span>
+                            </div>
+                            <div class="metric-info">
+                                <h3>Productivity Score</h3>
+                                <p>Based on task completions, streaks, and habits completed on schedule.</p>
+                            </div>
                         </div>
-                        <div class="stat-info">
-                            <span class="stat-value" id="stat-pending">0</span>
-                            <span class="stat-label">Pending</span>
+
+                        <div class="metric-card stats-counter-card">
+                            <div class="mini-stats-grid">
+                                <div class="mini-stat bg-total">
+                                    <span class="val" id="dash-total">0</span>
+                                    <span class="lbl">Total Tasks</span>
+                                </div>
+                                <div class="mini-stat bg-pending">
+                                    <span class="val" id="dash-pending">0</span>
+                                    <span class="lbl">Pending</span>
+                                </div>
+                                <div class="mini-stat bg-completed">
+                                    <span class="val" id="dash-completed">0</span>
+                                    <span class="lbl">Completed</span>
+                                </div>
+                                <div class="mini-stat bg-overdue">
+                                    <span class="val" id="dash-overdue">0</span>
+                                    <span class="lbl">Overdue</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="stat-card completed-tasks">
-                        <div class="stat-icon">
-                            <i class="fa-solid fa-circle-check"></i>
+                    <!-- Visual Analytics Panels -->
+                    <div class="analytics-layout">
+                        <!-- Chart Window -->
+                        <div class="analytics-card chart-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-chart-line"></i> <span id="chart-title-text">Weekly Performance</span></h3>
+                                <div class="chart-toggles">
+                                    <button class="chart-toggle-btn active" id="chart-toggle-weekly">Weekly</button>
+                                    <button class="chart-toggle-btn" id="chart-toggle-monthly">Monthly</button>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="analytics-chart"></canvas>
+                            </div>
                         </div>
-                        <div class="stat-info">
-                            <span class="stat-value" id="stat-completed">0</span>
-                            <span class="stat-label">Completed</span>
+
+                        <!-- Habit Calendar Heatmap -->
+                        <div class="analytics-card heatmap-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-calendar-grid"></i> Habit Streak Map</h3>
+                                <span class="card-badge">Activity Log</span>
+                            </div>
+                            <p class="heatmap-subtitle">Your completion density over the last 150 days:</p>
+                            <div class="heatmap-container">
+                                <canvas id="habit-heatmap" width="370" height="130"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-split-layout">
+                        <!-- Upcoming Reminders Panel -->
+                        <div class="dashboard-card reminders-panel">
+                            <h3><i class="fa-solid fa-bell"></i> Upcoming Reminders</h3>
+                            <ul class="reminders-list" id="dash-reminders-list">
+                                <!-- Reminders populated dynamically -->
+                            </ul>
+                        </div>
+                        
+                        <!-- Badges Quickview -->
+                        <div class="dashboard-card badges-panel">
+                            <h3><i class="fa-solid fa-award"></i> Showcase Badges</h3>
+                            <div class="badges-flex" id="dash-badges-flex">
+                                <!-- Badges populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Productivity Reports Summary Panel -->
+                        <div class="dashboard-card reports-panel">
+                            <h3><i class="fa-solid fa-file-invoice-paragraph"></i> Productivity Reports</h3>
+                            <div class="reports-content" id="dash-reports-summary">
+                                <!-- Populated dynamically -->
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Completion Progress Bar -->
-                <div class="progress-container">
-                    <div class="progress-label-row">
-                        <span>Task Completion</span>
-                        <span id="progress-percentage">0%</span>
+                <!-- ==========================================================
+                     TAB 2: ADVANCED TASKS MANAGER
+                     ========================================================== -->
+                <div class="tab-pane" id="tab-tasks" role="tabpanel">
+                    <!-- Toolbar search, filter, sorting -->
+                    <div class="tasks-toolbar">
+                        <div class="toolbar-search">
+                            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                            <input type="text" id="task-search" placeholder="Search by title, category, priority...">
+                        </div>
+                        
+                        <div class="toolbar-filters">
+                            <div class="select-filter">
+                                <i class="fa-solid fa-folder-open filter-icon"></i>
+                                <select id="filter-category">
+                                    <option value="all">All Categories</option>
+                                    <option value="health">Health</option>
+                                    <option value="work">Work</option>
+                                    <option value="study">Study</option>
+                                    <option value="personal">Personal</option>
+                                    <option value="finance">Finance</option>
+                                </select>
+                            </div>
+
+                            <div class="select-filter">
+                                <i class="fa-solid fa-circle-exclamation filter-icon"></i>
+                                <select id="filter-priority">
+                                    <option value="all">All Priorities</option>
+                                    <option value="critical">Critical</option>
+                                    <option value="high">High</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="low">Low</option>
+                                </select>
+                            </div>
+
+                            <div class="select-filter">
+                                <i class="fa-solid fa-sort filter-icon"></i>
+                                <select id="task-sort">
+                                    <option value="created-desc">Newest First</option>
+                                    <option value="created-asc">Oldest First</option>
+                                    <option value="due-asc">Due Date (Asc)</option>
+                                    <option value="due-desc">Due Date (Desc)</option>
+                                    <option value="priority-desc">Priority (High to Low)</option>
+                                    <option value="priority-asc">Priority (Low to High)</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                    <div class="progress-bar-bg">
-                        <div class="progress-bar-fill" id="progress-fill"></div>
+
+                    <!-- Add New Task Trigger Panel -->
+                    <div class="tasks-list-header">
+                        <div class="filter-status-tabs" role="tablist">
+                            <button class="status-tab active" data-status="all" role="tab" aria-selected="true">All</button>
+                            <button class="status-tab" data-status="pending" role="tab" aria-selected="false">Pending</button>
+                            <button class="status-tab" data-status="completed" role="tab" aria-selected="false">Completed</button>
+                        </div>
+                        <button class="primary-btn" id="open-add-modal-btn">
+                            <i class="fa-solid fa-plus"></i> Add New Task
+                        </button>
+                    </div>
+
+                    <!-- Tasks List Grid -->
+                    <div class="tasks-viewport">
+                        <div id="tasks-empty-state" class="empty-state hidden">
+                            <div class="empty-icon"><i class="fa-regular fa-clipboard"></i></div>
+                            <h3>No tasks matching filters</h3>
+                            <p>Try refining your search terms or filters above to view tasks.</p>
+                        </div>
+                        
+                        <!-- Groups -->
+                        <div class="task-group-container" id="tasks-group-overdue">
+                            <h3 class="group-title title-overdue"><i class="fa-solid fa-triangle-exclamation"></i> Overdue</h3>
+                            <ul class="task-list" id="list-overdue"></ul>
+                        </div>
+
+                        <div class="task-group-container" id="tasks-group-today">
+                            <h3 class="group-title title-today"><i class="fa-solid fa-calendar-day"></i> Today</h3>
+                            <ul class="task-list" id="list-today"></ul>
+                        </div>
+
+                        <div class="task-group-container" id="tasks-group-upcoming">
+                            <h3 class="group-title title-upcoming"><i class="fa-solid fa-calendar-days"></i> Upcoming</h3>
+                            <ul class="task-list" id="list-upcoming"></ul>
+                        </div>
+
+                        <div class="task-group-container" id="tasks-group-nodate">
+                            <h3 class="group-title title-nodate"><i class="fa-solid fa-inbox"></i> No Due Date</h3>
+                            <ul class="task-list" id="list-nodate"></ul>
+                        </div>
                     </div>
                 </div>
-            </section>
 
-            <!-- TASK CREATION FORM -->
-            <section class="task-form-section" aria-label="Add Task Form">
-                <form id="task-form" novalidate>
-                    <div class="form-grid">
-                        <!-- Task Name Input -->
-                        <div class="form-group task-input-group">
-                            <label for="task-input">Task Title</label>
-                            <div class="input-wrapper">
-                                <i class="fa-regular fa-keyboard input-icon"></i>
-                                <input type="text" id="task-input" placeholder="What needs to be done?" autocomplete="off" required>
+                <!-- ==========================================================
+                     TAB 3: HABIT TRACKER
+                     ========================================================== -->
+                <div class="tab-pane" id="tab-habits" role="tabpanel">
+                    <div class="habits-layout">
+                        <!-- Habit Addition Panel -->
+                        <div class="habits-creation-card">
+                            <h3><i class="fa-solid fa-wand-magic-sparkles"></i> Form a New Habit</h3>
+                            <form id="habit-form">
+                                <div class="form-group">
+                                    <label for="habit-title-input">Habit Name</label>
+                                    <div class="input-wrapper">
+                                        <i class="fa-regular fa-keyboard input-icon"></i>
+                                        <input type="text" id="habit-title-input" placeholder="e.g. Drink Water, Meditate, Read..." required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="habit-category-select">Category</label>
+                                    <div class="input-wrapper">
+                                        <i class="fa-solid fa-folder-open input-icon"></i>
+                                        <select id="habit-category-select">
+                                            <option value="health" selected>Health</option>
+                                            <option value="work">Work</option>
+                                            <option value="study">Study</option>
+                                            <option value="personal">Personal</option>
+                                            <option value="finance">Finance</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="primary-btn full-width"><i class="fa-solid fa-plus"></i> Form Habit</button>
+                            </form>
+                        </div>
+
+                        <!-- Habits List Board -->
+                        <div class="habits-board">
+                            <div class="board-header">
+                                <h3><i class="fa-solid fa-calendar-check"></i> Habit Checklist</h3>
+                                <p class="board-subtitle">Track your weekly habits (click boxes to toggle completion):</p>
+                            </div>
+                            
+                            <div id="habits-empty-state" class="empty-state">
+                                <div class="empty-icon"><i class="fa-solid fa-leaf"></i></div>
+                                <h3>No habits registered</h3>
+                                <p>Form a habit in the panel on the left to start tracking streaks!</p>
+                            </div>
+
+                            <div class="habits-table-container" id="habits-table-wrap">
+                                <table class="habits-table">
+                                    <thead>
+                                        <tr id="habits-table-headers">
+                                            <!-- Headers loaded dynamically -->
+                                        </tr>
+                                    </thead>
+                                    <tbody id="habits-table-body">
+                                        <!-- Habits populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================================
+                     TAB 4: INTERACTIVE CALENDAR
+                     ========================================================== -->
+                <div class="tab-pane" id="tab-calendar" role="tabpanel">
+                    <div class="calendar-layout-grid">
+                        <!-- Left Panel: Unscheduled Tasks to drag -->
+                        <div class="calendar-sidebar-panel">
+                            <h3><i class="fa-solid fa-inbox"></i> Unscheduled Inbox</h3>
+                            <p class="sidebar-p-hint">Drag tasks from here onto calendar days to schedule them:</p>
+                            <ul id="calendar-unscheduled-list" class="calendar-drag-list">
+                                <!-- Populated dynamically with tasks having no dueDate -->
+                            </ul>
+                        </div>
+                        
+                        <!-- Right Panel: Calendar Workspace -->
+                        <div class="calendar-workspace">
+                            <!-- Calendar Controls header -->
+                            <div class="calendar-toolbar">
+                                <div class="cal-nav-controls">
+                                    <button class="secondary-btn btn-sm" id="cal-btn-prev"><i class="fa-solid fa-chevron-left"></i></button>
+                                    <button class="secondary-btn btn-sm" id="cal-btn-today">Today</button>
+                                    <button class="secondary-btn btn-sm" id="cal-btn-next"><i class="fa-solid fa-chevron-right"></i></button>
+                                    <h3 id="calendar-date-title">June 2026</h3>
+                                </div>
+                                
+                                <div class="cal-view-selector">
+                                    <button class="cal-view-btn active" data-view="month">Month</button>
+                                    <button class="cal-view-btn" data-view="week">Week</button>
+                                    <button class="cal-view-btn" data-view="day">Day</button>
+                                </div>
+                            </div>
+
+                            <!-- Calendar Grid Wrapper -->
+                            <div class="calendar-grid-container-card">
+                                <div id="calendar-grid-container" class="calendar-grid">
+                                    <!-- Generated Dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================================
+                     TAB 5: POMODORO FOCUS MODE
+                     ========================================================== -->
+                <div class="tab-pane" id="tab-focus" role="tabpanel">
+                    <div class="focus-dashboard-container">
+                        <!-- Visual Circular Clock -->
+                        <div class="focus-timer-card">
+                            <div class="timer-mode-selectors">
+                                <button class="timer-mode-btn active" data-focus-mode="work">Work Session</button>
+                                <button class="timer-mode-btn" data-focus-mode="short">Short Break</button>
+                                <button class="timer-mode-btn" data-focus-mode="long">Long Break</button>
+                            </div>
+
+                            <div class="pomodoro-clock-dial">
+                                <svg class="timer-progress-svg" viewBox="0 0 200 200">
+                                    <circle class="dial-bg" cx="100" cy="100" r="88" stroke-width="6"/>
+                                    <circle class="dial-fill" id="timer-progress-ring" cx="100" cy="100" r="88" stroke-width="6" stroke-dasharray="552.9" stroke-dashoffset="0"/>
+                                </svg>
+                                <div class="timer-text-display">
+                                    <span class="timer-time" id="timer-time-display">25:00</span>
+                                    <span class="timer-label" id="timer-mode-label">FOCUS ON WORK</span>
+                                </div>
+                            </div>
+
+                            <div class="timer-controls">
+                                <button class="timer-control-btn play-btn" id="timer-play-btn" aria-label="Start Timer">
+                                    <i class="fa-solid fa-play"></i>
+                                </button>
+                                <button class="timer-control-btn pause-btn hidden" id="timer-pause-btn" aria-label="Pause Timer">
+                                    <i class="fa-solid fa-pause"></i>
+                                </button>
+                                <button class="timer-control-btn reset-btn" id="timer-reset-btn" aria-label="Reset Timer">
+                                    <i class="fa-solid fa-arrow-rotate-right"></i>
+                                </button>
+                                <button class="timer-control-btn expand-btn" id="timer-fullscreen-btn" aria-label="Fullscreen Focus Mode">
+                                    <i class="fa-solid fa-expand"></i>
+                                </button>
                             </div>
                         </div>
 
-                        <!-- Due Date Input -->
-                        <div class="form-group">
-                            <label for="task-date">Due Date</label>
-                            <div class="input-wrapper">
-                                <i class="fa-regular fa-calendar input-icon"></i>
-                                <input type="date" id="task-date">
+                        <!-- Sounds Generator & Options Panel -->
+                        <div class="focus-options-card">
+                            <h3><i class="fa-solid fa-music"></i> Ambient Focus Sounds</h3>
+                            <p class="section-descr">Synthesized ambient white noise helper (no static mp3s):</p>
+                            
+                            <div class="sound-selections-grid">
+                                <button class="sound-select-btn active" data-sound="none">
+                                    <i class="fa-solid fa-volume-xmark"></i> <span>None</span>
+                                </button>
+                                <button class="sound-select-btn" data-sound="white">
+                                    <i class="fa-solid fa-wind"></i> <span>White Noise</span>
+                                </button>
+                                <button class="sound-select-btn" data-sound="waves">
+                                    <i class="fa-solid fa-water"></i> <span>Ocean Waves</span>
+                                </button>
+                                <button class="sound-select-btn" data-sound="rain">
+                                    <i class="fa-solid fa-cloud-showers-heavy"></i> <span>Rainfall</span>
+                                </button>
+                            </div>
+
+                            <div class="volume-slider-group">
+                                <label for="ambient-volume-slider"><i class="fa-solid fa-volume-low"></i> Volume</label>
+                                <input type="range" id="ambient-volume-slider" min="0" max="0.3" step="0.01" value="0.08">
+                            </div>
+
+                            <div class="custom-timer-durations-box">
+                                <h3><i class="fa-solid fa-sliders"></i> Customize Session Lengths</h3>
+                                <div class="durations-grid">
+                                    <div class="duration-input">
+                                        <label for="dur-work">Work (Min)</label>
+                                        <input type="number" id="dur-work" value="25" min="1" max="180">
+                                    </div>
+                                    <div class="duration-input">
+                                        <label for="dur-short">Short (Min)</label>
+                                        <input type="number" id="dur-short" value="5" min="1" max="60">
+                                    </div>
+                                    <div class="duration-input">
+                                        <label for="dur-long">Long (Min)</label>
+                                        <input type="number" id="dur-long" value="15" min="1" max="60">
+                                    </div>
+                                </div>
+                                <button type="button" class="secondary-btn btn-sm full-width" id="apply-durations-btn">Apply Durations</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ==========================================================
+                     TAB 6: ACHIEVEMENTS & GAMIFICATION
+                     ========================================================== -->
+                <div class="tab-pane" id="tab-gamification" role="tabpanel">
+                    <div class="gamification-workspace">
+                        <div class="achievements-intro-card">
+                            <div class="intro-left">
+                                <h2>Your Achievements Showroom</h2>
+                                <p>Unlock badges by checking tasks, hitting streaks, and logging Pomodoro focus hours. Unlock achievements to gain major XP boosts!</p>
+                            </div>
+                            <div class="level-stats-card">
+                                <span class="stats-label">Current Rank</span>
+                                <h2 id="ach-level-title">Beginner</h2>
+                                <p>Earn <span id="ach-xp-to-go">150 XP</span> to next rank</p>
                             </div>
                         </div>
 
-                        <!-- Priority Selector -->
+                        <!-- Achievements Grid -->
+                        <div class="achievements-gallery" id="achievements-gallery-container">
+                            <!-- Populated Dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- ==========================================================
+         DIALOG MODALS: ADD TASK
+         ========================================================== -->
+    <div id="add-task-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="add-modal-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="add-modal-title"><i class="fa-solid fa-plus-circle"></i> Create New Task</h2>
+                <button class="close-btn" id="close-add-modal-btn" aria-label="Close modal">&times;</button>
+            </div>
+            
+            <form id="add-task-form">
+                <div class="modal-body">
+                    <!-- Title Input -->
+                    <div class="form-group">
+                        <label for="add-title">Task Title</label>
+                        <div class="input-wrapper">
+                            <i class="fa-regular fa-keyboard input-icon"></i>
+                            <input type="text" id="add-title" placeholder="Describe your task..." autocomplete="off" required>
+                        </div>
+                        <div class="modal-error-toast" id="add-title-error">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Title is required!
+                        </div>
+                    </div>
+
+                    <!-- Category & Priority Row -->
+                    <div class="modal-form-row">
                         <div class="form-group">
-                            <label for="task-priority">Priority</label>
+                            <label for="add-category">Category</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-folder-open input-icon"></i>
+                                <select id="add-category">
+                                    <option value="health">Health</option>
+                                    <option value="work">Work</option>
+                                    <option value="study">Study</option>
+                                    <option value="personal" selected>Personal</option>
+                                    <option value="finance">Finance</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="add-priority">Priority</label>
                             <div class="input-wrapper">
                                 <i class="fa-solid fa-arrow-up-wide-short input-icon"></i>
-                                <select id="task-priority">
+                                <select id="add-priority">
                                     <option value="low">Low</option>
                                     <option value="medium" selected>Medium</option>
                                     <option value="high">High</option>
+                                    <option value="critical">Critical</option>
                                 </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Date and Time Row -->
+                    <div class="modal-form-row">
+                        <div class="form-group">
+                            <label for="add-date">Due Date</label>
+                            <div class="input-wrapper">
+                                <i class="fa-regular fa-calendar input-icon"></i>
+                                <input type="date" id="add-date">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="add-time">Alert Time (Optional)</label>
+                            <div class="input-wrapper">
+                                <i class="fa-regular fa-clock input-icon"></i>
+                                <input type="time" id="add-time">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Smart Recurrence Toggle Group -->
+                    <div class="recurrence-toggle-header">
+                        <label class="toggle-switch-label">
+                            <input type="checkbox" id="add-recurring-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-text-label"><i class="fa-solid fa-rotate"></i> Recurring Task</span>
+                    </div>
+
+                    <!-- Recurrence settings subform (collapsible) -->
+                    <div id="add-recurrence-options" class="recurrence-subform hidden">
+                        <div class="modal-form-row">
+                            <div class="form-group">
+                                <label for="add-recur-type">Frequency</label>
+                                <select id="add-recur-type">
+                                    <option value="minutes">Every X Minutes</option>
+                                    <option value="hours">Every X Hours</option>
+                                    <option value="daily" selected>Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="add-recur-value">X Value (Interval)</label>
+                                <input type="number" id="add-recur-value" value="1" min="1">
                             </div>
                         </div>
                         
-                        <!-- Add Button -->
-                        <div class="form-submit-group">
-                            <button type="submit" id="add-task-btn" class="primary-btn">
-                                <i class="fa-solid fa-plus"></i> Add Task
-                            </button>
-                        </div>
-                    </div>
-                    <!-- Form Error Message -->
-                    <div class="error-toast" id="form-error">
-                        <i class="fa-solid fa-circle-exclamation"></i>
-                        <span id="error-text">Please enter a task title.</span>
-                    </div>
-                </form>
-            </section>
-
-            <!-- TOOLBAR: SEARCH, FILTERS & SORTING -->
-            <section class="toolbar-section" aria-label="Toolbar Options">
-                <div class="toolbar-flex">
-                    <!-- Search Box -->
-                    <div class="search-box">
-                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                        <input type="text" id="search-input" placeholder="Search tasks..." aria-label="Search tasks">
-                    </div>
-
-                    <!-- Filter & Sort Container -->
-                    <div class="controls-group">
-                        <!-- Filter Tabs -->
-                        <div class="filter-tabs" role="tablist">
-                            <button class="filter-tab active" data-filter="all" role="tab" aria-selected="true">All</button>
-                            <button class="filter-tab" data-filter="pending" role="tab" aria-selected="false">Pending</button>
-                            <button class="filter-tab" data-filter="completed" role="tab" aria-selected="false">Completed</button>
-                        </div>
-
-                        <!-- Sort Select -->
-                        <div class="sort-wrapper">
-                            <i class="fa-solid fa-sort sort-icon"></i>
-                            <select id="sort-select" aria-label="Sort tasks">
-                                <option value="created-desc">Newest First</option>
-                                <option value="created-asc">Oldest First</option>
-                                <option value="due-asc">Due Date (Asc)</option>
-                                <option value="due-desc">Due Date (Desc)</option>
-                                <option value="priority-desc">Priority (High to Low)</option>
-                                <option value="priority-asc">Priority (Low to High)</option>
-                            </select>
+                        <div class="modal-form-row" id="time-window-row">
+                            <div class="form-group">
+                                <label for="add-recur-start">Start Hour Limit</label>
+                                <input type="time" id="add-recur-start" value="07:00">
+                            </div>
+                            <div class="form-group">
+                                <label for="add-recur-end">End Hour Limit</label>
+                                <input type="time" id="add-recur-end" value="23:00">
+                            </div>
                         </div>
                     </div>
                 </div>
-            </section>
 
-            <!-- TASK LIST SECTION -->
-            <section class="task-list-section" aria-label="Task List">
-                <!-- Empty State -->
-                <div id="empty-state" class="empty-state hidden">
-                    <div class="empty-icon">
-                        <i class="fa-regular fa-clipboard"></i>
-                    </div>
-                    <h3>No tasks found</h3>
-                    <p>Add some tasks or adjust your filters to get started.</p>
+                <div class="modal-footer">
+                    <button type="button" class="secondary-btn" id="close-add-modal-btn2">Cancel</button>
+                    <button type="submit" class="primary-btn">Create Task</button>
                 </div>
-
-                <!-- Dynamic Task List -->
-                <ul id="task-list" class="task-list">
-                    <!-- List items will be generated dynamically by JS -->
-                </ul>
-            </section>
-        </main>
-        
-        <!-- FOOTER SECTION -->
-        <footer class="app-footer">
-            <p>TaskFlow Project &copy; 2026. Made for College Assignment.</p>
-        </footer>
+            </form>
+        </div>
     </div>
 
-    <!-- EDIT TASK MODAL -->
-    <div id="edit-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <!-- ==========================================================
+         DIALOG MODALS: EDIT TASK
+         ========================================================== -->
+    <div id="edit-task-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modal-title"><i class="fa-solid fa-pen-to-square"></i> Edit Task</h2>
-                <button id="close-modal-btn" class="close-btn" aria-label="Close modal">&times;</button>
+                <h2 id="edit-modal-title"><i class="fa-solid fa-pen-to-square"></i> Modify Task</h2>
+                <button class="close-btn" id="close-edit-modal-btn" aria-label="Close modal">&times;</button>
             </div>
-            <form id="edit-form">
+            
+            <form id="edit-task-form">
                 <input type="hidden" id="edit-task-id">
                 
                 <div class="modal-body">
+                    <!-- Title -->
                     <div class="form-group">
-                        <label for="edit-task-input">Task Title</label>
+                        <label for="edit-title">Task Title</label>
                         <div class="input-wrapper">
                             <i class="fa-regular fa-keyboard input-icon"></i>
-                            <input type="text" id="edit-task-input" placeholder="Edit task title..." autocomplete="off" required>
+                            <input type="text" id="edit-title" placeholder="Describe task..." required>
                         </div>
                     </div>
-                    
+
+                    <!-- Category / Priority -->
                     <div class="modal-form-row">
                         <div class="form-group">
-                            <label for="edit-task-date">Due Date</label>
+                            <label for="edit-category">Category</label>
                             <div class="input-wrapper">
-                                <i class="fa-regular fa-calendar input-icon"></i>
-                                <input type="date" id="edit-task-date">
+                                <i class="fa-solid fa-folder-open input-icon"></i>
+                                <select id="edit-category">
+                                    <option value="health">Health</option>
+                                    <option value="work">Work</option>
+                                    <option value="study">Study</option>
+                                    <option value="personal">Personal</option>
+                                    <option value="finance">Finance</option>
+                                </select>
                             </div>
                         </div>
 
                         <div class="form-group">
-                            <label for="edit-task-priority">Priority</label>
+                            <label for="edit-priority">Priority</label>
                             <div class="input-wrapper">
                                 <i class="fa-solid fa-arrow-up-wide-short input-icon"></i>
-                                <select id="edit-task-priority">
+                                <select id="edit-priority">
                                     <option value="low">Low</option>
                                     <option value="medium">Medium</option>
                                     <option value="high">High</option>
+                                    <option value="critical">Critical</option>
                                 </select>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Dates -->
+                    <div class="modal-form-row">
+                        <div class="form-group">
+                            <label for="edit-date">Due Date</label>
+                            <div class="input-wrapper">
+                                <i class="fa-regular fa-calendar input-icon"></i>
+                                <input type="date" id="edit-date">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit-time">Alert Time (Optional)</label>
+                            <div class="input-wrapper">
+                                <i class="fa-regular fa-clock input-icon"></i>
+                                <input type="time" id="edit-time">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recurring Switch -->
+                    <div class="recurrence-toggle-header">
+                        <label class="toggle-switch-label">
+                            <input type="checkbox" id="edit-recurring-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span class="toggle-text-label"><i class="fa-solid fa-rotate"></i> Recurring Task</span>
+                    </div>
+
+                    <div id="edit-recurrence-options" class="recurrence-subform hidden">
+                        <div class="modal-form-row">
+                            <div class="form-group">
+                                <label for="edit-recur-type">Frequency</label>
+                                <select id="edit-recur-type">
+                                    <option value="minutes">Every X Minutes</option>
+                                    <option value="hours">Every X Hours</option>
+                                    <option value="daily">Daily</option>
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-recur-value">Interval Value</label>
+                                <input type="number" id="edit-recur-value" min="1">
+                            </div>
+                        </div>
+                        
+                        <div class="modal-form-row" id="edit-time-window-row">
+                            <div class="form-group">
+                                <label for="edit-recur-start">Start Time</label>
+                                <input type="time" id="edit-recur-start">
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-recur-end">End Time</label>
+                                <input type="time" id="edit-recur-end">
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                
+
                 <div class="modal-footer">
-                    <button type="button" id="cancel-edit-btn" class="secondary-btn">Cancel</button>
+                    <button type="button" class="secondary-btn" id="close-edit-modal-btn2">Cancel</button>
                     <button type="submit" class="primary-btn">Save Changes</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Script File -->
-    <script src="script.js"></script>
+    <!-- ==========================================================
+         DIALOG MODALS: SMART REMINDER TRIGGER ALARM
+         ========================================================== -->
+    <div id="alarm-trigger-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="alarm-modal-title">
+        <div class="modal-content highlight-alarm">
+            <div class="modal-header bg-alarm">
+                <h2 id="alarm-modal-title"><i class="fa-solid fa-bell animate-bounce"></i> Task Alarm Alert!</h2>
+            </div>
+            <div class="modal-body">
+                <div class="alarm-details">
+                    <h3 id="alarm-task-title">Drink Water</h3>
+                    <p class="alarm-meta"><i class="fa-solid fa-clock"></i> Scheduled Alert Time: <span id="alarm-task-time">07:00</span></p>
+                </div>
+                
+                <div class="snooze-options-wrap">
+                    <label for="alarm-snooze-select">Select Snooze Time:</label>
+                    <select id="alarm-snooze-select">
+                        <option value="5" selected>Snooze 5 Minutes</option>
+                        <option value="15">Snooze 15 Minutes</option>
+                        <option value="30">Snooze 30 Minutes</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer flex-center-between">
+                <button type="button" class="secondary-btn" id="alarm-dismiss-btn">Dismiss Alarm</button>
+                <button type="button" class="primary-btn" id="alarm-snooze-btn"><i class="fa-solid fa-bed"></i> Snooze Alert</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================================
+         FULL SCREEN FOCUS MODE OVERLAY
+         ========================================================== -->
+    <div class="fullscreen-focus-overlay" id="fullscreen-focus-overlay">
+        <button class="exit-fullscreen-btn" id="exit-fullscreen-focus" aria-label="Exit fullscreen Focus Mode">
+            <i class="fa-solid fa-compress"></i> Exit Focus
+        </button>
+        <div class="fs-dial-container">
+            <div class="fs-timer-time" id="fs-timer-time">25:00</div>
+            <div class="fs-timer-label" id="fs-timer-label">FOCUS ON WORK</div>
+            
+            <div class="fs-controls">
+                <button class="fs-ctrl-btn" id="fs-play-btn"><i class="fa-solid fa-play"></i></button>
+                <button class="fs-ctrl-btn hidden" id="fs-pause-btn"><i class="fa-solid fa-pause"></i></button>
+                <button class="fs-ctrl-btn" id="fs-reset-btn"><i class="fa-solid fa-arrow-rotate-right"></i></button>
+            </div>
+        </div>
+        <div class="fs-ambient-hint">
+            <p><i class="fa-solid fa-headphones"></i> Synthesized ambient white noise playing in background</p>
+        </div>
+    </div>
+
+    <!-- Main Module Orchestration JS script -->
+    <script type="module" src="script.js"></script>
 </body>
 </html>

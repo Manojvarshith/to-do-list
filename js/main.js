@@ -3,13 +3,13 @@
  * Boots modules, runs viewport tab routing, coordinates metrics calculations and Chart.js analytics.
  */
 
-import { loadState, saveTheme } from './js/storage.js';
-import { GamificationManager, BADGES } from './js/gamification.js';
-import { NotificationManager } from './js/notifications.js';
-import { FocusManager } from './js/focus.js';
-import { CalendarManager } from './js/calendar.js';
-import { HabitManager, getLocalDateStr } from './js/habits.js';
-import { TaskManager, CATEGORIES } from './js/tasks.js';
+import { loadState, saveTheme } from './storage.js';
+import { GamificationManager, BADGES } from './gamification.js';
+import { NotificationManager } from './notifications.js';
+import { FocusManager } from './focus.js';
+import { CalendarManager } from './calendar.js';
+import { HabitManager, getLocalDateStr } from './habits.js';
+import { TaskManager, CATEGORIES } from './tasks.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. Initial State
@@ -142,7 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
     sidebarToggleBtn.addEventListener('click', () => appSidebar.classList.add('active'));
     mobileSidebarClose.addEventListener('click', () => appSidebar.classList.remove('active'));
 
-    // Theme Switch toggling
     // Theme Switch toggling
     themeToggleBtn.addEventListener('click', () => {
         const isDarkToggled = document.body.classList.toggle('dark-theme');
@@ -590,6 +589,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const total = appState.tasks.length;
         const completed = appState.tasks.filter(t => t.completed).length;
         const overdue = countOverdueTasks();
+        const habitsCount = appState.habits.length;
         
         let score = 50; // Base baseline
 
@@ -737,16 +737,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Showcase Badges Dashboard Panel
         const showcaseFlex = document.getElementById('dash-badges-flex');
-        if (showcaseFlex) {
-            showcaseFlex.innerHTML = BADGES.map(badge => {
-                const isUnlocked = gamificationManager.unlockedBadges.includes(badge.id);
-                return `
-                    <div class="badge-showcase-tile ${isUnlocked ? 'unlocked' : ''}" title="${badge.name}: ${badge.desc}">
-                        <i class="fa-solid ${badge.icon}"></i>
-                    </div>
-                `;
-            }).join('');
-        }
+        showcaseFlex.innerHTML = BADGES.map(badge => {
+            const isUnlocked = gamificationManager.unlockedBadges.includes(badge.id);
+            return `
+                <div class="badge-showcase-tile ${isUnlocked ? 'unlocked' : ''}" title="${badge.name}: ${badge.desc}">
+                    <i class="fa-solid ${badge.icon}"></i>
+                </div>
+            `;
+        }).join('');
     }
 
     // ==========================================================================
