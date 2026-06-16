@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow | Modern Task Management App</title>
+    <!-- Meta description for SEO -->
+    <meta name="description" content="Manage your tasks efficiently with TaskFlow. Features dark mode, category priorities, search, filtering, and stats dashboard with offline local storage.">
+    <!-- Google Fonts - Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icon CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Style Sheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- HEADER SECTION -->
+        <header class="app-header">
+            <div class="header-logo">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-square-check"></i>
+                </div>
+                <div>
+                    <h1>TaskFlow</h1>
+                    <p class="subtitle">Stay organized, stay productive</p>
+                </div>
+            </div>
+            
+            <!-- Theme Toggle -->
+            <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Theme">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </header>
+
+        <main class="app-body">
+            <!-- DASHBOARD / STATISTICS SECTION -->
+            <section class="dashboard-section" aria-label="Statistics Dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card total-tasks">
+                        <div class="stat-icon">
+                            <i class="fa-solid fa-list-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="stat-total">0</span>
+                            <span class="stat-label">Total Tasks</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card pending-tasks">
+                        <div class="stat-icon">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="stat-pending">0</span>
+                            <span class="stat-label">Pending</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card completed-tasks">
+                        <div class="stat-icon">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="stat-completed">0</span>
+                            <span class="stat-label">Completed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Completion Progress Bar -->
+                <div class="progress-container">
+                    <div class="progress-label-row">
+                        <span>Task Completion</span>
+                        <span id="progress-percentage">0%</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TASK CREATION FORM -->
+            <section class="task-form-section" aria-label="Add Task Form">
+                <form id="task-form" novalidate>
+                    <div class="form-grid">
+                        <!-- Task Name Input -->
+                        <div class="form-group task-input-group">
+                            <label for="task-input">Task Title</label>
+                            <div class="input-wrapper">
+                                <i class="fa-regular fa-keyboard input-icon"></i>
+                                <input type="text" id="task-input" placeholder="What needs to be done?" autocomplete="off" required>
+                            </div>
+                        </div>
+
+                        <!-- Due Date Input -->
+                        <div class="form-group">
+                            <label for="task-date">Due Date</label>
+                            <div class="input-wrapper">
+                                <i class="fa-regular fa-calendar input-icon"></i>
+                                <input type="date" id="task-date">
+                            </div>
+                        </div>
+
+                        <!-- Priority Selector -->
+                        <div class="form-group">
+                            <label for="task-priority">Priority</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-arrow-up-wide-short input-icon"></i>
+                                <select id="task-priority">
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Add Button -->
+                        <div class="form-submit-group">
+                            <button type="submit" id="add-task-btn" class="primary-btn">
+                                <i class="fa-solid fa-plus"></i> Add Task
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Form Error Message -->
+                    <div class="error-toast" id="form-error">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <span id="error-text">Please enter a task title.</span>
+                    </div>
+                </form>
+            </section>
+
+            <!-- TOOLBAR: SEARCH, FILTERS & SORTING -->
+            <section class="toolbar-section" aria-label="Toolbar Options">
+                <div class="toolbar-flex">
+                    <!-- Search Box -->
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="search-input" placeholder="Search tasks..." aria-label="Search tasks">
+                    </div>
+
+                    <!-- Filter & Sort Container -->
+                    <div class="controls-group">
+                        <!-- Filter Tabs -->
+                        <div class="filter-tabs" role="tablist">
+                            <button class="filter-tab active" data-filter="all" role="tab" aria-selected="true">All</button>
+                            <button class="filter-tab" data-filter="pending" role="tab" aria-selected="false">Pending</button>
+                            <button class="filter-tab" data-filter="completed" role="tab" aria-selected="false">Completed</button>
+                        </div>
+
+                        <!-- Sort Select -->
+                        <div class="sort-wrapper">
+                            <i class="fa-solid fa-sort sort-icon"></i>
+                            <select id="sort-select" aria-label="Sort tasks">
+                                <option value="created-desc">Newest First</option>
+                                <option value="created-asc">Oldest First</option>
+                                <option value="due-asc">Due Date (Asc)</option>
+                                <option value="due-desc">Due Date (Desc)</option>
+                                <option value="priority-desc">Priority (High to Low)</option>
+                                <option value="priority-asc">Priority (Low to High)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TASK LIST SECTION -->
+            <section class="task-list-section" aria-label="Task List">
+                <!-- Empty State -->
+                <div id="empty-state" class="empty-state hidden">
+                    <div class="empty-icon">
+                        <i class="fa-regular fa-clipboard"></i>
+                    </div>
+                    <h3>No tasks found</h3>
+                    <p>Add some tasks or adjust your filters to get started.</p>
+                </div>
+
+                <!-- Dynamic Task List -->
+                <ul id="task-list" class="task-list">
+                    <!-- List items will be generated dynamically by JS -->
+                </ul>
+            </section>
+        </main>
+        
+        <!-- FOOTER SECTION -->
+        <footer class="app-footer">
+            <p>TaskFlow Project &copy; 2026. Made for College Assignment.</p>
+        </footer>
+    </div>
+
+    <!-- EDIT TASK MODAL -->
+    <div id="edit-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title"><i class="fa-solid fa-pen-to-square"></i> Edit Task</h2>
+                <button id="close-modal-btn" class="close-btn" aria-label="Close modal">&times;</button>
+            </div>
+            <form id="edit-form">
+                <input type="hidden" id="edit-task-id">
+                
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="edit-task-input">Task Title</label>
+                        <div class="input-wrapper">
+                            <i class="fa-regular fa-keyboard input-icon"></i>
+                            <input type="text" id="edit-task-input" placeholder="Edit task title..." autocomplete="off" required>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-form-row">
+                        <div class="form-group">
+                            <label for="edit-task-date">Due Date</label>
+                            <div class="input-wrapper">
+                                <i class="fa-regular fa-calendar input-icon"></i>
+                                <input type="date" id="edit-task-date">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit-task-priority">Priority</label>
+                            <div class="input-wrapper">
+                                <i class="fa-solid fa-arrow-up-wide-short input-icon"></i>
+                                <select id="edit-task-priority">
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high">High</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" id="cancel-edit-btn" class="secondary-btn">Cancel</button>
+                    <button type="submit" class="primary-btn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script File -->
+    <script src="script.js"></script>
+</body>
+</html>
